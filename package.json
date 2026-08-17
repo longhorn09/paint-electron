@@ -5,7 +5,35 @@
   "main": "src/main/index.js",
   "scripts": {
     "start": "electron . --no-sandbox",
-    "test": "node test/test-algorithms.js"
+    "test": "node test/test-algorithms.js",
+    "dist": "electron-builder",
+    "dist:linux": "electron-builder --linux",
+    "dist:win": "electron-builder --win"
+  },
+  "build": {
+    "appId": "com.paint.electron",
+    "productName": "Paint",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "src/**/*",
+      "package.json",
+      "node_modules/gifenc/**/*"
+    ],
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "category": "Graphics"
+    },
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    }
   },
   "keywords": [
     "image-editor",
@@ -21,6 +49,7 @@
     "gifenc": "^1.0.3"
   },
   "devDependencies": {
-    "electron": "^33.2.0"
+    "electron": "^33.2.0",
+    "electron-builder": "^26.15.3"
   }
 }

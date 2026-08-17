@@ -84,6 +84,20 @@ You can also pass an image path directly:
 npx electron . /path/to/image.png --no-sandbox
 ```
 
+### Packaging & Distribution
+
+Build standalone installers and executables:
+
+```bash
+# Build for Windows (.exe installer + portable .exe)
+npm run dist:win
+
+# Build for Linux (.AppImage + .deb)
+npm run dist:linux
+```
+
+The output packages will be created in the `release/` directory.
+
 ---
 
 ## ⌨️ Keyboard Shortcuts
