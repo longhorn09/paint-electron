@@ -3,11 +3,13 @@ const path = require('path');
 const fs = require('fs');
 const { buildAppMenu } = require('./menu');
 
-// Linux & Wayland optimizations
+// Linux & Wayland optimizations and clean logging
 if (process.platform === 'linux') {
   // Hint Ozone platform for automatic Wayland/X11 detection
   app.commandLine.appendSwitch('ozone-platform-hint', 'auto');
   app.commandLine.appendSwitch('enable-features', 'WaylandWindowDecorations');
+  // Suppress harmless Chromium Mesa/GL VSync log noise on Linux
+  app.commandLine.appendSwitch('log-level', '3');
 }
 
 let mainWindow = null;
