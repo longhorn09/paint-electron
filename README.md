@@ -1,16 +1,20 @@
 # Paint (Electron)
 
-A fast, streamlined, essential image editor built for Ubuntu 26.04 and cross-platform desktop environments. Designed to solve common GTK/Wayland UI issues out of the box with zero manual configuration.
+A fast, streamlined, essential image editor built for Ubuntu 26.04 and cross-platform desktop environments (Linux, Windows, macOS). Designed to deliver simplicity, responsive performance, and exact pixel controls without the UI/window manager glitches or configuration overhead common in heavy graphics suites.
+
+Repository: [https://github.com/longhorn09/paint-electron](https://github.com/longhorn09/paint-electron)
 
 ---
 
 ## ✨ Features
 
 1. **Rectangle Selection Tool**
-   - Interactive drag-to-select with 8 resizing handles.
-   - Exact pixel dimensions control: enter exact **Width (px)** and **Height (px)**, plus **X (px)** and **Y (px)** in the options bar.
-   - Crop to selection (`Enter` / button).
-   - Clear/Delete selection (`Delete` / `Backspace`).
+   - Interactive drag-to-select with 8 resize handles.
+   - Exact pixel dimensions control: enter exact **Width (px)** and **Height (px)**, plus **X (px)** and **Y (px)** in the toolbar to position the box without triggering automatic crop.
+   - High-contrast animated "marching ants" border for clear visibility on both dark and light backgrounds.
+   - Click and drag anywhere inside the selection box to reposition it.
+   - Crop to selection (`Enter` / "Crop to Selection" button).
+   - Clear/Delete selected pixels (`Delete` / `Backspace`).
    - Copy (`Ctrl+C`) and Cut (`Ctrl+X`) selection to internal & system clipboard.
    - Select All (`Ctrl+A`) and Deselect (`Ctrl+D` / `Esc`).
 
@@ -20,6 +24,7 @@ A fast, streamlined, essential image editor built for Ubuntu 26.04 and cross-pla
    - Rotate 180° (`180°`).
    - Flip Horizontal (mirror along vertical axis).
    - Flip Vertical (mirror along horizontal axis).
+   - Selection coordinates automatically rotate/flip along with the image.
 
 3. **Image Resize**
    - Resize by exact pixel dimensions (**Width** and **Height**) or percentage (**%**).
@@ -31,8 +36,8 @@ A fast, streamlined, essential image editor built for Ubuntu 26.04 and cross-pla
    - Supports **PNG**, **JPEG/JPG**, **WebP**, and **GIF**.
    - Convert seamlessly between formats on Save / Save As (`Ctrl+S`, `Ctrl+Shift+S`).
    - **Lossless PNG is the default format** for pristine quality preservation.
-   - Drag-and-drop image files onto the window to open.
-   - Clipboard Paste (`Ctrl+V`) to import screenshots or copied images directly.
+   - Drag-and-drop image files directly into the window to open.
+   - Clipboard Paste (`Ctrl+V`) to import screenshots or copied images immediately.
 
 5. **Gaussian Blur Tool**
    - Applies Gaussian blur to a selection (or entire image if no selection is active).
@@ -42,7 +47,7 @@ A fast, streamlined, essential image editor built for Ubuntu 26.04 and cross-pla
 
 6. **Color Picker (Eyedropper)**
    - Sample pixel colors directly from canvas.
-   - Real-time magnified loupe view with pixel grid, RGB values, and Hex code.
+   - Real-time magnified loupe view with pixel grid, RGB values, and Hex code under the cursor.
    - Instant color copying to clipboard and active palette.
 
 7. **Flood Fill (Paint Bucket)**
@@ -54,6 +59,11 @@ A fast, streamlined, essential image editor built for Ubuntu 26.04 and cross-pla
    - Zoom to Fit (`Ctrl+0`) and Actual Size 100% (`Ctrl+1`).
    - Status bar displaying image dimensions, active selection info, cursor position, pixel color swatch, and zoom slider.
    - Full Undo / Redo history stack (`Ctrl+Z`, `Ctrl+Y`).
+
+9. **Help & About Menu**
+   - In-app **Help / About** dialog and native application menu tab (`Help` $\rightarrow$ `About Paint`, `Help` $\rightarrow$ `GitHub Repository`).
+   - Direct link to source code on GitHub for contributing, forking, and reporting issues.
+   - Built-in keyboard shortcuts reference sheet (`F1`).
 
 ---
 
@@ -67,7 +77,7 @@ A fast, streamlined, essential image editor built for Ubuntu 26.04 and cross-pla
 ### Installation
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/longhorn09/paint-electron.git
 cd paint-electron
 npm install
 ```
@@ -84,7 +94,20 @@ You can also pass an image path directly:
 npx electron . /path/to/image.png --no-sandbox --disable-logging --log-level=3
 ```
 
-### Packaging & Distribution
+### 📌 Install to Ubuntu Dock / App Menu
+
+To install the desktop launcher so you can launch and pin Paint directly from your Ubuntu Dock:
+
+```bash
+npm run install-desktop
+```
+
+1. Press the **Super** key (Windows key) on your keyboard.
+2. Search for **"Paint"**.
+3. Right-click the Paint icon $\rightarrow$ select **"Pin to Dash"** (or **"Add to Favorites"**).
+4. You can also right-click any image file in Ubuntu Nautilus file manager $\rightarrow$ **Open With** $\rightarrow$ **Paint**.
+
+### 📦 Packaging & Distribution
 
 Build standalone installers and executables:
 
@@ -112,7 +135,7 @@ The output packages will be created in the `release/` directory.
 | **Redo** | `Ctrl + Y` or `Ctrl + Shift + Z` |
 | **Select All** | `Ctrl + A` |
 | **Deselect / Cancel** | `Ctrl + D` or `Escape` |
-| **Crop Selection** | `Enter` |
+| **Crop to Selection** | `Enter` |
 | **Clear Selection** | `Delete` / `Backspace` |
 | **Copy Selection** | `Ctrl + C` |
 | **Cut Selection** | `Ctrl + X` |
@@ -127,12 +150,37 @@ The output packages will be created in the `release/` directory.
 | **Zoom In / Out** | `Ctrl +` / `Ctrl -` or Mouse Wheel |
 | **Zoom to Fit** | `Ctrl + 0` |
 | **Actual Size 100%** | `Ctrl + 1` |
+| **Help / About / Shortcuts** | `F1` |
+
+---
+
+## 🤝 Contributing & Source Code
+
+Contributions, issues, and feature requests are welcome!
+
+- **Repository**: [https://github.com/longhorn09/paint-electron](https://github.com/longhorn09/paint-electron)
+- **Fork the Repo**: [https://github.com/longhorn09/paint-electron/fork](https://github.com/longhorn09/paint-electron/fork)
+- **Report Issues**: [https://github.com/longhorn09/paint-electron/issues](https://github.com/longhorn09/paint-electron/issues)
+
+To contribute:
+1. Fork the repository.
+2. Create your feature branch (`git checkout -b feature/amazing-feature`).
+3. Commit your changes (`git commit -m 'Add some amazing feature'`).
+4. Push to the branch (`git push origin feature/amazing-feature`).
+5. Open a Pull Request.
 
 ---
 
 ## 🐧 Ubuntu 26.04 & Linux Optimization Notes
 
 - Automatic Wayland and X11 display server detection (`--ozone-platform-hint=auto`).
+- Clean terminal logging with suppressed non-fatal GPU/VSync messages.
 - AppArmor-friendly sandbox configuration.
 - Native GNOME-inspired dark theme matching modern Linux desktop aesthetics.
 - Pure JavaScript and HTML5 Canvas architecture without fragile C++ binary compilation steps.
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

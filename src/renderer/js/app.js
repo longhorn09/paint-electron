@@ -27,6 +27,7 @@ class PaintApp {
     // Modals and Drawers
     this.resizeModal = document.getElementById('resize-modal');
     this.newImageModal = document.getElementById('new-image-modal');
+    this.aboutModal = document.getElementById('about-modal');
     this.blurBar = document.getElementById('blur-adjust-bar');
 
     this.initUI();
@@ -107,6 +108,10 @@ class PaintApp {
     // 5. Image Resize Button & Modal
     document.getElementById('btn-open-resize')?.addEventListener('click', () => this.openResizeModal());
     this.initResizeModal();
+
+    // About & Help Button & Modal
+    document.getElementById('btn-open-about')?.addEventListener('click', () => this.openAboutModal());
+    this.initAboutModal();
 
     // 6. Gaussian Blur Slider & Bar
     this.initBlurControls();
@@ -529,6 +534,72 @@ class PaintApp {
     };
   }
 
+  // --- About & Help Modal ---
+  initAboutModal() {
+    const modal = this.aboutModal;
+    const btnClose = document.getElementById('btn-about-close');
+    const btnCloseX = document.getElementById('btn-about-close-x');
+    const tabBtns = document.querySelectorAll('[data-about-tab]');
+
+    const closeAbout = () => {
+      if (modal) modal.style.display = 'none';
+    };
+
+    btnClose?.addEventListener('click', closeAbout);
+    btnCloseX?.addEventListener('click', closeAbout);
+
+    tabBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tab = btn.dataset.aboutTab;
+        this.switchAboutTab(tab);
+      });
+    });
+
+    const openUrl = (url) => {
+      if (window.electronAPI && window.electronAPI.openExternal) {
+        window.electronAPI.openExternal(url);
+      } else {
+        window.open(url, '_blank');
+      }
+    };
+
+    document.getElementById('link-github-repo')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      openUrl('https://github.com/longhorn09/paint-electron');
+    });
+
+    document.getElementById('btn-open-github')?.addEventListener('click', () => {
+      openUrl('https://github.com/longhorn09/paint-electron');
+    });
+
+    document.getElementById('btn-open-fork')?.addEventListener('click', () => {
+      openUrl('https://github.com/longhorn09/paint-electron/fork');
+    });
+
+    document.getElementById('btn-open-issues')?.addEventListener('click', () => {
+      openUrl('https://github.com/longhorn09/paint-electron/issues');
+    });
+  }
+
+  switchAboutTab(tabName) {
+    const tabBtns = document.querySelectorAll('[data-about-tab]');
+    tabBtns.forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.aboutTab === tabName);
+    });
+
+    const tabAbout = document.getElementById('about-tab-content-about');
+    const tabShortcuts = document.getElementById('about-tab-content-shortcuts');
+
+    if (tabAbout) tabAbout.style.display = tabName === 'about' ? 'flex' : 'none';
+    if (tabShortcuts) tabShortcuts.style.display = tabName === 'shortcuts' ? 'block' : 'none';
+  }
+
+  openAboutModal(tab = 'about') {
+    if (!this.aboutModal) return;
+    this.switchAboutTab(tab);
+    this.aboutModal.style.display = 'flex';
+  }
+
   createNewCanvas(width, height, background = 'white') {
     this.state.imageCanvas.width = width;
     this.state.imageCanvas.height = height;
@@ -757,6 +828,8 @@ class PaintApp {
       } else if (isCtrl && (e.key === 'd' || e.key === 'D') || e.key === 'Escape') {
         if (this.blurBar && this.blurBar.style.display === 'flex') {
           this.closeBlurAdjustment(false);
+        } else if (this.aboutModal && this.aboutModal.style.display === 'flex') {
+          this.aboutModal.style.display = 'none';
         } else if (this.resizeModal && this.resizeModal.style.display === 'flex') {
           this.resizeModal.style.display = 'none';
         } else if (this.newImageModal && this.newImageModal.style.display === 'flex') {
@@ -764,6 +837,9 @@ class PaintApp {
         } else {
           this.state.clearSelection();
         }
+      } else if (e.key === 'F1') {
+        e.preventDefault();
+        this.openAboutModal();
       } else if (e.key === 'Delete' || e.key === 'Backspace') {
         if (this.state.selection) {
           e.preventDefault();

@@ -5,6 +5,8 @@
   "main": "src/main/index.js",
   "scripts": {
     "start": "electron . --no-sandbox --disable-logging --log-level=3",
+    "install-desktop": "node scripts/install-desktop.js",
+    "generate-icon": "node scripts/generate-png-icon.js",
     "test": "node test/test-algorithms.js",
     "dist": "electron-builder",
     "dist:linux": "electron-builder --linux",
@@ -45,6 +47,14 @@
   ],
   "author": "",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/longhorn09/paint-electron.git"
+  },
+  "bugs": {
+    "url": "https://github.com/longhorn09/paint-electron/issues"
+  },
+  "homepage": "https://github.com/longhorn09/paint-electron#readme",
   "dependencies": {
     "gifenc": "^1.0.3"
   },

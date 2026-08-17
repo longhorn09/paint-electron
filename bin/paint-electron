@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ELECTRON_BIN="$SCRIPT_DIR/node_modules/electron/dist/electron"
+
+if [ ! -f "$ELECTRON_BIN" ]; then
+  # Fallback to npx electron if dist path is altered
+  exec npx --prefix "$SCRIPT_DIR" electron "$SCRIPT_DIR" --no-sandbox --disable-logging --log-level=3 "$@"
+else
+  exec "$ELECTRON_BIN" "$SCRIPT_DIR" --no-sandbox --disable-logging --log-level=3 "$@"
+fi

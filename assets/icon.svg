@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2d3748" />
+      <stop offset="100%" stop-color="#1a202c" />
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3b82f6" />
+      <stop offset="50%" stop-color="#8b5cf6" />
+      <stop offset="100%" stop-color="#ec4899" />
+    </linearGradient>
+    <linearGradient id="brushGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f59e0b" />
+      <stop offset="100%" stop-color="#d97706" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="16" stdDeviation="20" flood-color="#000000" flood-opacity="0.45" />
+    </filter>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#8b5cf6" flood-opacity="0.3" />
+    </filter>
+  </defs>
+
+  <!-- Base App Squircle / Rounded Plate -->
+  <rect x="32" y="32" width="448" height="448" rx="100" fill="url(#bgGrad)" stroke="#384252" stroke-width="6" filter="url(#shadow)" />
+
+  <!-- Inner Canvas Preview Area -->
+  <rect x="76" y="76" width="360" height="360" rx="36" fill="#1e1e24" stroke="#4a5568" stroke-width="3" />
+
+  <!-- Decorative checkerboard grid in background of canvas -->
+  <g opacity="0.15">
+    <rect x="110" y="110" width="40" height="40" fill="#ffffff" />
+    <rect x="190" y="110" width="40" height="40" fill="#ffffff" />
+    <rect x="270" y="110" width="40" height="40" fill="#ffffff" />
+    <rect x="350" y="110" width="40" height="40" fill="#ffffff" />
+    <rect x="150" y="150" width="40" height="40" fill="#ffffff" />
+    <rect x="230" y="150" width="40" height="40" fill="#ffffff" />
+    <rect x="310" y="150" width="40" height="40" fill="#ffffff" />
+    <rect x="110" y="190" width="40" height="40" fill="#ffffff" />
+    <rect x="190" y="190" width="40" height="40" fill="#ffffff" />
+    <rect x="270" y="190" width="40" height="40" fill="#ffffff" />
+    <rect x="350" y="190" width="40" height="40" fill="#ffffff" />
+  </g>
+
+  <!-- Glowing Colorful Swirl Wave (Creativity) -->
+  <path d="M 120 340 C 180 240, 260 380, 360 220 C 390 170, 350 140, 310 160 C 240 190, 200 300, 140 310 Z" fill="url(#accentGrad)" filter="url(#glow)" opacity="0.85" />
+
+  <!-- Dotted Selection Box (Signature Feature) -->
+  <rect x="140" y="140" width="232" height="232" rx="12" fill="none" stroke="#38bdf8" stroke-width="4" stroke-dasharray="10 6" />
+  <!-- Selection Corner Handles -->
+  <rect x="134" y="134" width="12" height="12" rx="2" fill="#38bdf8" stroke="#ffffff" stroke-width="2" />
+  <rect x="366" y="134" width="12" height="12" rx="2" fill="#38bdf8" stroke="#ffffff" stroke-width="2" />
+  <rect x="134" y="366" width="12" height="12" rx="2" fill="#38bdf8" stroke="#ffffff" stroke-width="2" />
+  <rect x="366" y="366" width="12" height="12" rx="2" fill="#38bdf8" stroke="#ffffff" stroke-width="2" />
+
+  <!-- Stylized Paint Brush -->
+  <g transform="translate(240, 120) rotate(45)">
+    <!-- Brush Handle -->
+    <path d="M 0 0 L 24 -120 C 24 -130, 8 -130, 8 -120 L 0 0 Z" fill="url(#brushGrad)" />
+    <!-- Metal Ferrule -->
+    <rect x="-6" y="0" width="20" height="24" rx="3" fill="#94a3b8" stroke="#64748b" stroke-width="2" />
+    <!-- Bristles & Tip with paint -->
+    <path d="M -6 24 C -6 45, 14 55, 4 75 C -6 55, 4 45, 4 24 Z" fill="#ec4899" />
+    <circle cx="4" cy="72" r="5" fill="#ec4899" />
+  </g>
+
+  <!-- Vibrant Color Palette Drops -->
+  <circle cx="150" cy="390" r="14" fill="#3b82f6" stroke="#ffffff" stroke-width="3" />
+  <circle cx="190" cy="405" r="14" fill="#10b981" stroke="#ffffff" stroke-width="3" />
+  <circle cx="230" cy="410" r="14" fill="#f59e0b" stroke="#ffffff" stroke-width="3" />
+  <circle cx="270" cy="405" r="14" fill="#ec4899" stroke="#ffffff" stroke-width="3" />
+</svg>

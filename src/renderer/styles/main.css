@@ -585,3 +585,160 @@ input[type="number"] {
   justify-content: flex-end;
   gap: 8px;
 }
+
+.modal-dialog-large {
+  width: 580px;
+  max-width: 95vw;
+}
+
+.modal-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border-color);
+  background-color: var(--bg-dark);
+  padding: 0 16px;
+  gap: 4px;
+}
+
+.modal-tab-btn {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-muted);
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.modal-tab-btn:hover {
+  color: #ffffff;
+}
+
+.modal-tab-btn.active {
+  color: var(--accent-text);
+  border-bottom-color: var(--accent);
+}
+
+.about-header-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background-color: var(--bg-darkest);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 14px 16px;
+}
+
+.about-icon-box {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #3584e4, #9141ac);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.about-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.about-version {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-left: 6px;
+  background: var(--bg-surface);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+}
+
+.about-desc {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.github-card {
+  background-color: var(--bg-darkest);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.github-repo-link {
+  color: #38bdf8;
+  text-decoration: none;
+  font-family: monospace;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.github-repo-link:hover {
+  text-decoration: underline;
+  color: #7dd3fc;
+}
+
+.github-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.shortcuts-table-container {
+  max-height: 280px;
+  overflow-y: auto;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+}
+
+.shortcuts-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  text-align: left;
+}
+
+.shortcuts-table th {
+  background-color: var(--bg-darkest);
+  padding: 8px 12px;
+  color: var(--text-muted);
+  font-weight: 600;
+  border-bottom: 1px solid var(--border-color);
+  position: sticky;
+  top: 0;
+}
+
+.shortcuts-table td {
+  padding: 6px 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  color: var(--text-main);
+}
+
+.shortcuts-table tr:hover td {
+  background-color: var(--bg-surface-hover);
+}
+
+.kbd {
+  display: inline-block;
+  padding: 2px 6px;
+  font-size: 11px;
+  font-family: system-ui, -apple-system, monospace;
+  color: #e2e8f0;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  box-shadow: 0 1px 1px rgba(0,0,0,0.2);
+}

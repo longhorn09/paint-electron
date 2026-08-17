@@ -1,4 +1,4 @@
-const { Menu, app } = require('electron');
+const { Menu, app, shell } = require('electron');
 
 function buildAppMenu(mainWindow) {
   const isMac = process.platform === 'darwin';
@@ -159,6 +159,33 @@ function buildAppMenu(mainWindow) {
         { type: 'separator' },
         { role: 'togglefullscreen' },
         { role: 'toggleDevTools' }
+      ]
+    },
+    {
+      label: 'Help',
+      submenu: [
+        {
+          label: 'About Paint',
+          click: () => mainWindow?.webContents.executeJavaScript('window.app?.openAboutModal()')
+        },
+        {
+          label: 'Keyboard Shortcuts',
+          accelerator: 'F1',
+          click: () => mainWindow?.webContents.executeJavaScript('window.app?.openAboutModal("shortcuts")')
+        },
+        { type: 'separator' },
+        {
+          label: 'GitHub Repository (Source Code)',
+          click: () => shell.openExternal('https://github.com/longhorn09/paint-electron')
+        },
+        {
+          label: 'Fork on GitHub',
+          click: () => shell.openExternal('https://github.com/longhorn09/paint-electron/fork')
+        },
+        {
+          label: 'Report an Issue / Feedback',
+          click: () => shell.openExternal('https://github.com/longhorn09/paint-electron/issues')
+        }
       ]
     }
   ];

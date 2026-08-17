@@ -13,8 +13,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   writeClipboardImage: (dataUrl) => ipcRenderer.invoke('clipboard:writeImage', dataUrl),
   readClipboardImage: () => ipcRenderer.invoke('clipboard:readImage'),
 
-  // Window
+  // Window & Shell
   setTitle: (title) => ipcRenderer.invoke('window:setTitle', title),
+  openExternal: (url) => ipcRenderer.invoke('shell:openExternal', url),
 
   // Event Listeners
   onFileOpened: (callback) => {

@@ -104,6 +104,16 @@
             <span>100%</span>
           </button>
         </div>
+
+        <div class="divider"></div>
+
+        <!-- Help / About / GitHub -->
+        <div class="toolbar-group">
+          <button id="btn-open-about" class="btn-icon" title="About & Help / GitHub Repository (F1)">
+            <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+            <span>Help / About</span>
+          </button>
+        </div>
       </div>
     </header>
 
@@ -347,6 +357,107 @@
       <div class="modal-footer">
         <button id="btn-new-cancel" class="btn-icon">Cancel</button>
         <button id="btn-new-create" class="btn-icon btn-accent">Create Image</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- About & Help Modal -->
+  <div id="about-modal" class="modal-backdrop" style="display: none;">
+    <div class="modal-dialog modal-dialog-large">
+      <div class="modal-header">
+        <div class="modal-title">Help & About Paint</div>
+        <button id="btn-about-close-x" class="btn-icon" style="padding: 2px 6px;">✕</button>
+      </div>
+      
+      <div class="modal-tabs">
+        <button class="modal-tab-btn active" data-about-tab="about">About & Source</button>
+        <button class="modal-tab-btn" data-about-tab="shortcuts">Keyboard Shortcuts</button>
+      </div>
+
+      <div class="modal-body" id="about-tab-content-about">
+        <!-- App Identity -->
+        <div class="about-header-card">
+          <div class="about-icon-box">
+            <svg class="icon icon-lg" viewBox="0 0 24 24"><path d="M12 19l7-7 3 3-7 7-3-3z"></path><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path><path d="M2 2l7.586 7.586"></path><circle cx="11" cy="11" r="2"></circle></svg>
+          </div>
+          <div>
+            <div style="display: flex; align-items: center;">
+              <span class="about-title">Paint</span>
+              <span class="about-version">v1.0.0</span>
+            </div>
+            <div class="about-desc">Fast, essential desktop image editor with exact selection, resize, rotation, Gaussian blur, and multi-format conversion.</div>
+          </div>
+        </div>
+
+        <!-- Open Source & GitHub Contribution Card -->
+        <div class="github-card">
+          <div style="font-weight: 600; color: #ffffff; display: flex; align-items: center; gap: 8px;">
+            <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
+            <span>Open Source & GitHub Repository</span>
+          </div>
+          <div style="font-size: 12px; color: var(--text-muted);">
+            Contribute features, fork the project, report bugs, or explore the codebase:
+          </div>
+          <div>
+            <a href="https://github.com/longhorn09/paint-electron" target="_blank" class="github-repo-link" id="link-github-repo">
+              <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+              https://github.com/longhorn09/paint-electron
+            </a>
+          </div>
+          <div class="github-actions">
+            <button id="btn-open-github" class="btn-icon btn-accent">
+              <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
+              <span>View Source Code</span>
+            </button>
+            <button id="btn-open-fork" class="btn-icon">
+              <svg class="icon icon-sm" viewBox="0 0 24 24"><line x1="6" y1="3" x2="6" y2="15"></line><circle cx="18" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M18 9a9 9 0 0 1-9 9"></path></svg>
+              <span>Fork on GitHub</span>
+            </button>
+            <button id="btn-open-issues" class="btn-icon">
+              <svg class="icon icon-sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+              <span>Issues / Feedback</span>
+            </button>
+          </div>
+        </div>
+
+        <div style="font-size: 11px; color: var(--text-dim); text-align: center;">
+          Released under the MIT License • Built for Ubuntu Linux & Cross-Platform Desktop
+        </div>
+      </div>
+
+      <div class="modal-body" id="about-tab-content-shortcuts" style="display: none;">
+        <div class="shortcuts-table-container">
+          <table class="shortcuts-table">
+            <thead>
+              <tr>
+                <th>Action</th>
+                <th>Shortcut</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>New Image</td><td><span class="kbd">Ctrl + N</span></td></tr>
+              <tr><td>Open Image</td><td><span class="kbd">Ctrl + O</span></td></tr>
+              <tr><td>Save</td><td><span class="kbd">Ctrl + S</span></td></tr>
+              <tr><td>Save As</td><td><span class="kbd">Ctrl + Shift + S</span></td></tr>
+              <tr><td>Undo / Redo</td><td><span class="kbd">Ctrl + Z</span> / <span class="kbd">Ctrl + Y</span></td></tr>
+              <tr><td>Crop to Selection</td><td><span class="kbd">Enter</span></td></tr>
+              <tr><td>Select All / Deselect</td><td><span class="kbd">Ctrl + A</span> / <span class="kbd">Ctrl + D</span> or <span class="kbd">Esc</span></td></tr>
+              <tr><td>Copy / Cut / Paste</td><td><span class="kbd">Ctrl + C</span> / <span class="kbd">Ctrl + X</span> / <span class="kbd">Ctrl + V</span></td></tr>
+              <tr><td>Delete Selection</td><td><span class="kbd">Delete</span> or <span class="kbd">Backspace</span></td></tr>
+              <tr><td>Rotate 90° CW / CCW</td><td><span class="kbd">Ctrl + R</span> / <span class="kbd">Ctrl + Shift + R</span></td></tr>
+              <tr><td>Resize Image</td><td><span class="kbd">Ctrl + Alt + I</span></td></tr>
+              <tr><td>Gaussian Blur Tool</td><td><span class="kbd">B</span></td></tr>
+              <tr><td>Color Picker (Eyedropper)</td><td><span class="kbd">I</span></td></tr>
+              <tr><td>Flood Fill Bucket</td><td><span class="kbd">G</span> or <span class="kbd">F</span></td></tr>
+              <tr><td>Selection Tool</td><td><span class="kbd">S</span> or <span class="kbd">M</span></td></tr>
+              <tr><td>Fit to Window / Actual 100%</td><td><span class="kbd">Ctrl + 0</span> / <span class="kbd">Ctrl + 1</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button id="btn-about-close" class="btn-icon btn-accent">Close</button>
       </div>
     </div>
   </div>

@@ -1,7 +1,9 @@
-const { app, BrowserWindow, ipcMain, dialog, Menu, clipboard, nativeImage } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, Menu, clipboard, nativeImage, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const { buildAppMenu } = require('./menu');
+
+app.name = 'Paint';
 
 // Suppress Chromium internal GL/Mesa/GPU log noise across all platforms and operations
 app.commandLine.appendSwitch('disable-logging');
@@ -24,6 +26,7 @@ function createWindow() {
     minWidth: 800,
     minHeight: 600,
     title: 'Paint',
+    icon: path.join(__dirname, '../../assets/icon.png'),
     backgroundColor: '#1e1e24',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -235,4 +238,13 @@ ipcMain.handle('clipboard:readImage', () => {
 // 7. Show message box
 ipcMain.handle('dialog:showMessage', async (event, options) => {
   return await dialog.showMessageBox(mainWindow, options);
+});
+
+// 8. Open External URL in default browser
+ipcMain.handle('shell:openExternal', async (event, url) => {
+  if (url && (url.startsWith('https://') || url.startsWith('http://'))) {
+    await shell.openExternal(url);
+    return true;
+  }
+  return false;
 });
