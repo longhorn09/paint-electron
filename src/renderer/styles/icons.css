@@ -1,0 +1,22 @@
+/* Crisp SVG Icons embedded directly */
+.icon {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  vertical-align: middle;
+  stroke-width: 2;
+  stroke: currentColor;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.icon-lg {
+  width: 20px;
+  height: 20px;
+}
+
+.icon-sm {
+  width: 14px;
+  height: 14px;
+}

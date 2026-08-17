@@ -1,0 +1,26 @@
+{
+  "name": "paint-electron",
+  "version": "1.0.0",
+  "description": "Fast, essential image editor built for Ubuntu 26.04 and cross-platform desktop",
+  "main": "src/main/index.js",
+  "scripts": {
+    "start": "electron . --no-sandbox",
+    "test": "node test/test-algorithms.js"
+  },
+  "keywords": [
+    "image-editor",
+    "paint",
+    "electron",
+    "ubuntu",
+    "linux",
+    "photo-editor"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "gifenc": "^1.0.3"
+  },
+  "devDependencies": {
+    "electron": "^33.2.0"
+  }
+}
