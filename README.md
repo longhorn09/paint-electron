@@ -81,7 +81,7 @@ npm start
 You can also pass an image path directly:
 
 ```bash
-npx electron . /path/to/image.png --no-sandbox
+npx electron . /path/to/image.png --no-sandbox --disable-logging --log-level=3
 ```
 
 ### Packaging & Distribution

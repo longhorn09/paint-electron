@@ -4,7 +4,7 @@
   "description": "Fast, essential image editor built for Ubuntu 26.04 and cross-platform desktop",
   "main": "src/main/index.js",
   "scripts": {
-    "start": "electron . --no-sandbox",
+    "start": "electron . --no-sandbox --disable-logging --log-level=3",
     "test": "node test/test-algorithms.js",
     "dist": "electron-builder",
     "dist:linux": "electron-builder --linux",

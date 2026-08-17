@@ -44,6 +44,11 @@ export class CanvasEngine {
     // Eyedropper hover loupe state
     this.loupePos = null;
 
+    // Animated marching ants state for selection
+    this.dashOffset = 0;
+    this.animatingAnts = false;
+    this.antsAnimId = null;
+
     this.initEventListeners();
     this.resizeViewport();
 
@@ -199,6 +204,34 @@ export class CanvasEngine {
     };
   }
 
+  startMarchingAnts() {
+    if (this.animatingAnts) return;
+    this.animatingAnts = true;
+    let lastTime = performance.now();
+
+    const loop = (now) => {
+      if (!this.animatingAnts) return;
+      if (this.state.selection) {
+        const delta = Math.min(100, now - lastTime);
+        lastTime = now;
+        this.dashOffset = ((this.dashOffset || 0) + delta * 0.015) % 24;
+        this.renderOverlay();
+        this.antsAnimId = requestAnimationFrame(loop);
+      } else {
+        this.stopMarchingAnts();
+      }
+    };
+    this.antsAnimId = requestAnimationFrame(loop);
+  }
+
+  stopMarchingAnts() {
+    this.animatingAnts = false;
+    if (this.antsAnimId) {
+      cancelAnimationFrame(this.antsAnimId);
+      this.antsAnimId = null;
+    }
+  }
+
   render() {
     const width = this.viewportWidth;
     const height = this.viewportHeight;
@@ -211,7 +244,6 @@ export class CanvasEngine {
     // 1. Clear viewports
     this.bgCtx.clearRect(0, 0, width, height);
     this.displayCtx.clearRect(0, 0, width, height);
-    this.overlayCtx.clearRect(0, 0, width, height);
 
     // Calculate image destination rectangle on screen
     const dstX = Math.round(panX);
@@ -229,24 +261,51 @@ export class CanvasEngine {
     }
     this.displayCtx.drawImage(this.state.imageCanvas, dstX, dstY, dstW, dstH);
 
-    // 4. Draw Drop Shadow and Boundary Border
+    // 4. Render overlay elements (selection, grid, loupe)
+    this.renderOverlay();
+
+    // Ensure animation is active if selection exists
+    if (this.state.selection) {
+      this.startMarchingAnts();
+    } else {
+      this.stopMarchingAnts();
+    }
+  }
+
+  renderOverlay() {
+    const width = this.viewportWidth;
+    const height = this.viewportHeight;
+    const zoom = this.state.zoom;
+    const panX = this.state.panX;
+    const panY = this.state.panY;
+    const imgW = this.state.width;
+    const imgH = this.state.height;
+
+    this.overlayCtx.clearRect(0, 0, width, height);
+
+    const dstX = Math.round(panX);
+    const dstY = Math.round(panY);
+    const dstW = Math.round(imgW * zoom);
+    const dstH = Math.round(imgH * zoom);
+
+    // 1. Draw Drop Shadow and Boundary Border
     this.overlayCtx.save();
     this.overlayCtx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
     this.overlayCtx.lineWidth = 1;
     this.overlayCtx.strokeRect(dstX - 0.5, dstY - 0.5, dstW + 1, dstH + 1);
     this.overlayCtx.restore();
 
-    // 5. Draw Pixel Grid if zoomed in >= 800%
+    // 2. Draw Pixel Grid if zoomed in >= 800%
     if (zoom >= 8.0 && dstW <= 10000 && dstH <= 10000) {
       this.drawPixelGrid(dstX, dstY, imgW, imgH, zoom);
     }
 
-    // 6. Draw Selection Box and Handles
+    // 3. Draw Selection Box and Handles
     if (this.state.selection) {
       this.drawSelectionOverlay(this.state.selection);
     }
 
-    // 7. Draw Eyedropper Loupe if active
+    // 4. Draw Eyedropper Loupe if active
     if (this.loupePos && this.state.activeTool === 'picker') {
       this.drawLoupe(this.loupePos);
     }
@@ -306,7 +365,7 @@ export class CanvasEngine {
     ctx.save();
 
     // Semi-transparent dimming outside selection
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
     // Top
     ctx.fillRect(0, 0, this.viewportWidth, sy);
     // Bottom
@@ -316,12 +375,20 @@ export class CanvasEngine {
     // Right
     ctx.fillRect(sx + sw, sy, this.viewportWidth - (sx + sw), sh);
 
-    // Marching ants / dual colored dashed border
+    // Dotted flashing marching ants line (alternating high-contrast black and white dashes)
+    const dashLength = 6;
+    const offset = this.dashOffset || 0;
+
+    // Pass 1: Black dashes
     ctx.lineWidth = 1.5;
+    ctx.setLineDash([dashLength, dashLength]);
+    ctx.lineDashOffset = -offset;
     ctx.strokeStyle = '#000000';
     ctx.strokeRect(sx + 0.5, sy + 0.5, sw, sh);
 
-    ctx.setLineDash([5, 5]);
+    // Pass 2: White dashes shifted by dash length
+    ctx.setLineDash([dashLength, dashLength]);
+    ctx.lineDashOffset = -offset + dashLength;
     ctx.strokeStyle = '#FFFFFF';
     ctx.strokeRect(sx + 0.5, sy + 0.5, sw, sh);
 
@@ -340,24 +407,27 @@ export class CanvasEngine {
 
     ctx.setLineDash([]);
     for (const h of handles) {
-      ctx.fillStyle = '#3b82f6';
+      ctx.fillStyle = '#3584e4';
       ctx.strokeStyle = '#ffffff';
       ctx.lineWidth = 1.5;
       ctx.fillRect(Math.round(h.x - handleSize / 2), Math.round(h.y - handleSize / 2), handleSize, handleSize);
       ctx.strokeRect(Math.round(h.x - handleSize / 2) + 0.5, Math.round(h.y - handleSize / 2) + 0.5, handleSize, handleSize);
     }
 
-    // Draw dimension badge
-    const badgeText = `${sel.width} × ${sel.height} px`;
-    ctx.font = '11px sans-serif';
+    // Draw dimension & position badge
+    const badgeText = `${sel.width} × ${sel.height} px  (${sel.x}, ${sel.y})`;
+    ctx.font = 'bold 11px system-ui, sans-serif';
     const textW = ctx.measureText(badgeText).width;
     const badgeX = Math.max(8, Math.min(this.viewportWidth - textW - 20, sx));
-    const badgeY = sy > 28 ? sy - 8 : sy + sh + 20;
+    const badgeY = sy > 28 ? sy - 10 : sy + sh + 22;
 
-    ctx.fillStyle = 'rgba(20, 20, 24, 0.85)';
+    ctx.fillStyle = 'rgba(20, 20, 26, 0.9)';
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+    ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.roundRect(badgeX - 4, badgeY - 14, textW + 8, 18, 4);
+    ctx.roundRect(badgeX - 6, badgeY - 14, textW + 12, 20, 4);
     ctx.fill();
+    ctx.stroke();
 
     ctx.fillStyle = '#FFFFFF';
     ctx.fillText(badgeText, badgeX, badgeY);

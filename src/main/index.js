@@ -3,13 +3,15 @@ const path = require('path');
 const fs = require('fs');
 const { buildAppMenu } = require('./menu');
 
-// Linux & Wayland optimizations and clean logging
+// Suppress Chromium internal GL/Mesa/GPU log noise across all platforms and operations
+app.commandLine.appendSwitch('disable-logging');
+app.commandLine.appendSwitch('log-level', '3');
+
+// Linux & Wayland optimizations
 if (process.platform === 'linux') {
   // Hint Ozone platform for automatic Wayland/X11 detection
   app.commandLine.appendSwitch('ozone-platform-hint', 'auto');
   app.commandLine.appendSwitch('enable-features', 'WaylandWindowDecorations');
-  // Suppress harmless Chromium Mesa/GL VSync log noise on Linux
-  app.commandLine.appendSwitch('log-level', '3');
 }
 
 let mainWindow = null;

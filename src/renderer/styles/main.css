@@ -202,21 +202,35 @@ body {
   font-weight: 500;
 }
 
+/* Remove browser default spinner up/down arrows on number inputs */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none !important;
+  margin: 0 !important;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield !important;
+  appearance: textfield !important;
+}
+
 .input-num {
   background-color: var(--bg-darkest);
   border: 1px solid var(--border-color);
   border-radius: 4px;
   color: var(--text-main);
-  padding: 3px 6px;
+  padding: 4px 8px;
   font-size: 12px;
   width: 65px;
   font-family: inherit;
-  text-align: right;
+  text-align: center;
   outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .input-num:focus {
   border-color: var(--border-focus);
+  box-shadow: 0 0 0 2px rgba(53, 132, 228, 0.25);
 }
 
 .input-text {

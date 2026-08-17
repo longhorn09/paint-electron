@@ -81,8 +81,9 @@ class PaintApp {
       if (!input) return;
       input.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
+          e.preventDefault();
+          e.stopPropagation();
           applySelectionInputs();
-          input.blur();
         }
       });
       input.addEventListener('change', applySelectionInputs);

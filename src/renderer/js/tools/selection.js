@@ -230,8 +230,24 @@ export class SelectionTool {
     const w = Math.max(1, Math.min(this.state.width, Math.round(width)));
     const h = Math.max(1, Math.min(this.state.height, Math.round(height)));
 
-    let curX = x !== null ? Math.round(x) : (this.state.selection ? this.state.selection.x : 0);
-    let curY = y !== null ? Math.round(y) : (this.state.selection ? this.state.selection.y : 0);
+    let curX;
+    let curY;
+
+    if (x !== null && !isNaN(x)) {
+      curX = Math.round(x);
+    } else if (this.state.selection) {
+      curX = this.state.selection.x;
+    } else {
+      curX = Math.round((this.state.width - w) / 2);
+    }
+
+    if (y !== null && !isNaN(y)) {
+      curY = Math.round(y);
+    } else if (this.state.selection) {
+      curY = this.state.selection.y;
+    } else {
+      curY = Math.round((this.state.height - h) / 2);
+    }
 
     // Clamp within image bounds
     curX = Math.max(0, Math.min(this.state.width - w, curX));
@@ -243,6 +259,7 @@ export class SelectionTool {
       width: w,
       height: h
     });
+    this.engine.startMarchingAnts();
     this.engine.render();
   }
 
