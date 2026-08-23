@@ -1,9 +1,9 @@
 /**
- * Save-path helpers shared by the renderer and tests.
- * Keep in sync with save-path.cjs used by the Electron main process.
+ * Save-path helpers for the main-process dialog (CommonJS).
+ * Linux GTK/portal save dialogs often omit the selected filter's extension.
  */
 
-export const KNOWN_SAVE_EXTENSIONS = {
+const KNOWN_SAVE_EXTENSIONS = {
   png: 'png',
   jpg: 'jpg',
   jpeg: 'jpg',
@@ -12,50 +12,25 @@ export const KNOWN_SAVE_EXTENSIONS = {
   bmp: 'bmp'
 };
 
-/**
- * @param {string} ext
- * @returns {string} Canonical save extension without a leading dot.
- */
-export function normalizeSaveExt(ext) {
+function normalizeSaveExt(ext) {
   if (!ext) return 'png';
   const clean = String(ext).replace(/^\./, '').toLowerCase();
   return KNOWN_SAVE_EXTENSIONS[clean] || 'png';
 }
 
-/**
- * @param {string} filePath
- * @returns {string} Lowercase extension without a dot, or ''.
- */
-export function getPathExtension(filePath) {
+function getPathExtension(filePath) {
   const match = String(filePath || '').match(/\.([a-zA-Z0-9]+)$/);
   return match ? match[1].toLowerCase() : '';
 }
 
-/**
- * If the filename already has a known image extension, leave it.
- * Otherwise append the selected save-as type (png, jpg, webp, gif).
- *
- * @param {string} filePath
- * @param {string} selectedExt
- * @returns {string}
- */
-export function ensureSaveExtension(filePath, selectedExt) {
+function ensureSaveExtension(filePath, selectedExt) {
   if (!filePath) return filePath;
   const existing = getPathExtension(filePath);
   if (KNOWN_SAVE_EXTENSIONS[existing]) return filePath;
   return `${filePath}.${normalizeSaveExt(selectedExt)}`;
 }
 
-/**
- * Pick the selected save-dialog filter extension when Electron surfaces it.
- * Falls back to defaultExt (the format shown first / requested by the renderer).
- *
- * @param {object} result showSaveDialog return value
- * @param {Array<{extensions: string[]}>} filters
- * @param {string} fallbackExt
- * @returns {string}
- */
-export function resolveSelectedSaveExt(result, filters, fallbackExt) {
+function resolveSelectedSaveExt(result, filters, fallbackExt) {
   if (!result || !Array.isArray(filters) || filters.length === 0) {
     return normalizeSaveExt(fallbackExt);
   }
@@ -76,3 +51,11 @@ export function resolveSelectedSaveExt(result, filters, fallbackExt) {
 
   return normalizeSaveExt(fallbackExt);
 }
+
+module.exports = {
+  KNOWN_SAVE_EXTENSIONS,
+  normalizeSaveExt,
+  getPathExtension,
+  ensureSaveExtension,
+  resolveSelectedSaveExt
+};

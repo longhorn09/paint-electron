@@ -22,5 +22,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
     const handler = (event, fileData) => callback(fileData);
     ipcRenderer.on('file:opened', handler);
     return () => ipcRenderer.removeListener('file:opened', handler);
+  },
+  onMenuCommand: (callback) => {
+    const handler = (_event, command) => callback(command);
+    ipcRenderer.on('menu:command', handler);
+    return () => ipcRenderer.removeListener('menu:command', handler);
   }
 });

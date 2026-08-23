@@ -1,8 +1,12 @@
 import assert from 'node:assert';
+import { createRequire } from 'node:module';
 import { applyGaussianBlur } from '../src/renderer/js/utils/fast-blur.js';
 import { encodeCanvasToGif } from '../src/renderer/js/utils/gif-export.js';
 import { HistoryManager } from '../src/renderer/js/history.js';
 import { ensureSaveExtension, resolveSelectedSaveExt } from '../src/shared/save-path.js';
+
+const require = createRequire(import.meta.url);
+const savePathCjs = require('../src/shared/save-path.cjs');
 
 console.log('🧪 Starting automated tests...\n');
 
@@ -163,6 +167,10 @@ console.log('5. Testing Save-As extension append...');
     'webp'
   );
   assert.strictEqual(resolveSelectedSaveExt({}, filters, 'gif'), 'gif');
+  assert.strictEqual(
+    savePathCjs.ensureSaveExtension('/tmp/vacation', 'jpeg'),
+    ensureSaveExtension('/tmp/vacation', 'jpeg')
+  );
 
   console.log('   ✓ Save-As extension append verified.');
 }

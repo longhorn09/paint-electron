@@ -35,12 +35,12 @@ function buildAppMenu(mainWindow) {
         {
           label: 'Save',
           accelerator: 'CmdOrCtrl+S',
-          click: () => mainWindow?.webContents.executeJavaScript('window.app?.handleSaveFile(false)')
+          click: () => mainWindow?.webContents.send('menu:command', 'save')
         },
         {
           label: 'Save As...',
           accelerator: 'CmdOrCtrl+Shift+S',
-          click: () => mainWindow?.webContents.executeJavaScript('window.app?.handleSaveFile(true)')
+          click: () => mainWindow?.webContents.send('menu:command', 'save-as')
         },
         { type: 'separator' },
         isMac ? { role: 'close' } : { role: 'quit' }

@@ -31,6 +31,8 @@ class PaintApp {
     this.aboutModal = document.getElementById('about-modal');
     this.blurBar = document.getElementById('blur-adjust-bar');
 
+    this._saveInProgress = false;
+
     this.initUI();
     this.initMenuAndShortcuts();
     this.initFileDropAndPaste();
@@ -371,11 +373,11 @@ class PaintApp {
       if (finalW > 0 && finalH > 0) {
         this.resizeTool.resizeImage(finalW, finalH, interp);
       }
-      modal.style.display = 'none';
+      this.closeModal(modal);
     });
 
     btnCancel?.addEventListener('click', () => {
-      modal.style.display = 'none';
+      this.closeModal(modal);
     });
   }
 
@@ -532,11 +534,11 @@ class PaintApp {
       const bg = bgSelect?.value || 'white';
 
       this.createNewCanvas(w, h, bg);
-      modal.style.display = 'none';
+      this.closeModal(modal);
     };
 
     btnCancel.onclick = () => {
-      modal.style.display = 'none';
+      this.closeModal(modal);
     };
   }
 
@@ -656,50 +658,68 @@ class PaintApp {
     }
   }
 
-  async handleSaveFile(saveAs = false) {
-    let targetPath = this.state.filePath;
-    let format = this.state.fileFormat || 'png';
+  closeModal(modal) {
+    if (modal) modal.style.display = 'none';
+    const active = document.activeElement;
+    if (active && typeof active.blur === 'function') active.blur();
+  }
 
-    // If no existing file path or user clicked "Save As", prompt Save As Dialog
-    if (!targetPath || saveAs) {
-      if (!window.electronAPI || !window.electronAPI.saveAsDialog) {
-        alert('File saving is only available in the desktop app.');
-        return;
+  async handleSaveFile(saveAs = false) {
+    if (this._saveInProgress) return;
+    this._saveInProgress = true;
+
+    try {
+      this.closeModal(this.resizeModal);
+      this.closeModal(this.newImageModal);
+
+      let targetPath = this.state.filePath;
+      let format = this.state.fileFormat || 'png';
+
+      // If no existing file path or user clicked "Save As", prompt Save As Dialog
+      if (!targetPath || saveAs) {
+        if (!window.electronAPI || !window.electronAPI.saveAsDialog) {
+          alert('File saving is only available in the desktop app.');
+          return;
+        }
+
+        const defaultName = this.state.fileName || 'untitled.png';
+        const nameExt = defaultName.includes('.') ? defaultName.split('.').pop() : '';
+        const defaultExt = this.state.fileFormat || nameExt || 'png';
+
+        targetPath = await window.electronAPI.saveAsDialog({
+          defaultName,
+          defaultExt
+        });
+
+        if (!targetPath) return; // User cancelled
       }
 
-      const defaultName = this.state.fileName || 'untitled.png';
-      const nameExt = defaultName.includes('.') ? defaultName.split('.').pop() : '';
-      const defaultExt = this.state.fileFormat || nameExt || 'png';
+      // Native Linux dialogs often omit the selected type's extension
+      targetPath = ensureSaveExtension(targetPath, format);
+      const pathExt = getPathExtension(targetPath);
+      if (pathExt) format = normalizeSaveExt(pathExt);
 
-      targetPath = await window.electronAPI.saveAsDialog({
-        defaultName,
-        defaultExt
+      const { buffer } = await getCanvasFileBuffer(this.state.imageCanvas, format);
+
+      const result = await window.electronAPI.writeFile({
+        filePath: targetPath,
+        buffer
       });
 
-      if (!targetPath) return; // User cancelled
-    }
-
-    // Native Linux dialogs often omit the selected type's extension
-    targetPath = ensureSaveExtension(targetPath, format);
-    const pathExt = getPathExtension(targetPath);
-    if (pathExt) format = normalizeSaveExt(pathExt);
-
-    // Get binary buffer for saving
-    const { buffer } = await getCanvasFileBuffer(this.state.imageCanvas, format);
-
-    const result = await window.electronAPI.writeFile({
-      filePath: targetPath,
-      buffer
-    });
-
-    if (result && result.success) {
-      this.state.filePath = result.filePath;
-      this.state.fileName = result.fileName;
-      this.state.fileFormat = format;
-      this.state.history.markSaved();
-      this.updateTitle();
-    } else {
-      alert(`Error saving file: ${result ? result.error : 'Unknown error'}`);
+      if (result && result.success) {
+        this.state.filePath = result.filePath;
+        this.state.fileName = result.fileName;
+        this.state.fileFormat = format;
+        this.state.history.markSaved();
+        this.updateTitle();
+      } else {
+        alert(`Error saving file: ${result ? result.error : 'Unknown error'}`);
+      }
+    } catch (err) {
+      console.error('Save failed:', err);
+      alert(`Error saving file: ${err.message || err}`);
+    } finally {
+      this._saveInProgress = false;
     }
   }
 
@@ -732,6 +752,13 @@ class PaintApp {
     if (window.electronAPI && window.electronAPI.onFileOpened) {
       window.electronAPI.onFileOpened(({ filePath, fileName, dataUrl, ext }) => {
         this.loadFromDataUrl(dataUrl, fileName, filePath, ext);
+      });
+    }
+
+    if (window.electronAPI && window.electronAPI.onMenuCommand) {
+      window.electronAPI.onMenuCommand((command) => {
+        if (command === 'save') this.handleSaveFile(false);
+        if (command === 'save-as') this.handleSaveFile(true);
       });
     }
   }
@@ -794,22 +821,25 @@ class PaintApp {
     window.addEventListener('keydown', (e) => {
       const isCtrl = e.ctrlKey || e.metaKey;
 
-      // Ignore standard input shortcuts when typing in inputs
-      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName) && e.key !== 'Escape') {
+      const isTypingField = ['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName);
+      const isFileShortcut = isCtrl && ['n', 'N', 'o', 'O', 's', 'S'].includes(e.key);
+
+      // Ignore standard input shortcuts when typing, but keep File save/open/new
+      if (isTypingField && e.key !== 'Escape' && !isFileShortcut) {
         return;
       }
 
       // File Shortcuts
-      if (isCtrl && e.key === 'n') {
+      if (isCtrl && (e.key === 'n' || e.key === 'N')) {
         e.preventDefault();
         this.openNewImageModal();
-      } else if (isCtrl && e.key === 'o') {
+      } else if (isCtrl && (e.key === 'o' || e.key === 'O')) {
         e.preventDefault();
         this.handleOpenFile();
       } else if (isCtrl && e.shiftKey && (e.key === 's' || e.key === 'S')) {
         e.preventDefault();
         this.handleSaveFile(true);
-      } else if (isCtrl && e.key === 's') {
+      } else if (isCtrl && (e.key === 's' || e.key === 'S')) {
         e.preventDefault();
         this.handleSaveFile(false);
       }
@@ -837,9 +867,9 @@ class PaintApp {
         } else if (this.aboutModal && this.aboutModal.style.display === 'flex') {
           this.aboutModal.style.display = 'none';
         } else if (this.resizeModal && this.resizeModal.style.display === 'flex') {
-          this.resizeModal.style.display = 'none';
+          this.closeModal(this.resizeModal);
         } else if (this.newImageModal && this.newImageModal.style.display === 'flex') {
-          this.newImageModal.style.display = 'none';
+          this.closeModal(this.newImageModal);
         } else {
           this.state.clearSelection();
         }

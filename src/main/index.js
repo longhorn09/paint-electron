@@ -2,6 +2,7 @@ const { app, BrowserWindow, ipcMain, dialog, Menu, clipboard, nativeImage, shell
 const path = require('path');
 const fs = require('fs');
 const { buildAppMenu } = require('./menu');
+const { ensureSaveExtension, normalizeSaveExt, resolveSelectedSaveExt } = require('../shared/save-path.cjs');
 
 app.name = 'Paint';
 
@@ -177,40 +178,51 @@ ipcMain.handle('dialog:openFile', async () => {
 
 // 2. Save As Dialog
 ipcMain.handle('dialog:saveAs', async (event, options = {}) => {
-  const { ensureSaveExtension, normalizeSaveExt, resolveSelectedSaveExt } = await import('../shared/save-path.js');
-  const defaultExt = normalizeSaveExt(options.defaultExt || 'png');
-  const defaultName = ensureSaveExtension(options.defaultName || `untitled.${defaultExt}`, defaultExt);
-  const filters = buildSaveFilters(defaultExt);
+  try {
+    const defaultExt = normalizeSaveExt(options.defaultExt || 'png');
+    const defaultName = ensureSaveExtension(options.defaultName || `untitled.${defaultExt}`, defaultExt);
+    const filters = buildSaveFilters(defaultExt);
 
-  const saveDialogOptions = {
-    title: 'Save Image As',
-    defaultPath: defaultName,
-    filters
-  };
-  if (process.platform === 'linux') {
-    saveDialogOptions.properties = ['showOverwriteConfirmation'];
+    const saveDialogOptions = {
+      title: 'Save Image As',
+      defaultPath: defaultName,
+      filters
+    };
+    if (process.platform === 'linux') {
+      saveDialogOptions.properties = ['showOverwriteConfirmation'];
+    }
+
+    const result = await dialog.showSaveDialog(mainWindow, saveDialogOptions);
+
+    if (result.canceled || !result.filePath) return null;
+
+    const selectedExt = resolveSelectedSaveExt(result, filters, defaultExt);
+    const finalPath = ensureSaveExtension(result.filePath, selectedExt);
+
+    if (finalPath !== result.filePath && fs.existsSync(finalPath)) {
+      const { response } = await dialog.showMessageBox(mainWindow, {
+        type: 'warning',
+        buttons: ['Replace', 'Cancel'],
+        defaultId: 1,
+        cancelId: 1,
+        title: 'Replace file?',
+        message: `"${path.basename(finalPath)}" already exists. Do you want to replace it?`
+      });
+      if (response !== 0) return null;
+    }
+
+    return finalPath;
+  } catch (err) {
+    console.error('Save As dialog failed:', err);
+    if (mainWindow) {
+      await dialog.showMessageBox(mainWindow, {
+        type: 'error',
+        title: 'Save As failed',
+        message: err.message || String(err)
+      });
+    }
+    return null;
   }
-
-  const result = await dialog.showSaveDialog(mainWindow, saveDialogOptions);
-
-  if (result.canceled || !result.filePath) return null;
-
-  const selectedExt = resolveSelectedSaveExt(result, filters, defaultExt);
-  const finalPath = ensureSaveExtension(result.filePath, selectedExt);
-
-  if (finalPath !== result.filePath && fs.existsSync(finalPath)) {
-    const { response } = await dialog.showMessageBox(mainWindow, {
-      type: 'warning',
-      buttons: ['Replace', 'Cancel'],
-      defaultId: 1,
-      cancelId: 1,
-      title: 'Replace file?',
-      message: `"${path.basename(finalPath)}" already exists. Do you want to replace it?`
-    });
-    if (response !== 0) return null;
-  }
-
-  return finalPath;
 });
 
 // 3. Write Image to File
