@@ -283,7 +283,6 @@ class PaintApp {
     const wPctInput = document.getElementById('resize-w-pct');
     const hPctInput = document.getElementById('resize-h-pct');
     const lockBtn = document.getElementById('resize-lock-ratio');
-    const interpSelect = document.getElementById('resize-interpolation');
     const btnApply = document.getElementById('btn-resize-apply');
     const btnCancel = document.getElementById('btn-resize-cancel');
 
@@ -367,20 +366,37 @@ class PaintApp {
       });
     });
 
-    btnApply?.addEventListener('click', () => {
-      const finalW = parseInt(wInput.value, 10);
-      const finalH = parseInt(hInput.value, 10);
-      const interp = interpSelect?.value || 'smooth';
-
-      if (finalW > 0 && finalH > 0) {
-        this.resizeTool.resizeImage(finalW, finalH, interp);
-      }
-      this.closeModal(modal);
-    });
+    btnApply?.addEventListener('click', () => this.applyResizeFromModal());
 
     btnCancel?.addEventListener('click', () => {
       this.closeModal(modal);
     });
+
+    modal?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.ctrlKey && !e.altKey && !e.metaKey && !e.shiftKey) {
+        e.preventDefault();
+        e.stopPropagation();
+        this.applyResizeFromModal();
+      }
+    });
+  }
+
+  applyResizeFromModal() {
+    const modal = this.resizeModal;
+    if (!modal || modal.style.display !== 'flex') return false;
+
+    const wInput = document.getElementById('resize-w-input');
+    const hInput = document.getElementById('resize-h-input');
+    const interpSelect = document.getElementById('resize-interpolation');
+    const finalW = parseInt(wInput?.value, 10);
+    const finalH = parseInt(hInput?.value, 10);
+    const interp = interpSelect?.value || 'smooth';
+
+    if (finalW > 0 && finalH > 0) {
+      this.resizeTool.resizeImage(finalW, finalH, interp);
+    }
+    this.closeModal(modal);
+    return true;
   }
 
   openResizeModal() {
@@ -666,6 +682,18 @@ class PaintApp {
     if (active && typeof active.blur === 'function') active.blur();
   }
 
+  handleEnterAction() {
+    if (this.applyResizeFromModal()) return;
+    if (this.blurBar && this.blurBar.style.display === 'flex') {
+      this.blurTool.apply();
+      this.closeBlurAdjustment(true);
+      return;
+    }
+    if (this.state.selection) {
+      this.selectionTool.cropToSelection();
+    }
+  }
+
   initSaveAsModal() {
     const modal = this.saveAsModal;
     const nameInput = document.getElementById('save-as-name-input');
@@ -905,6 +933,13 @@ class PaintApp {
 
       const isTypingField = ['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName);
       const isFileShortcut = isCtrl && ['n', 'N', 'o', 'O', 's', 'S'].includes(e.key);
+      const resizeOpen = this.resizeModal && this.resizeModal.style.display === 'flex';
+
+      if (e.key === 'Enter' && resizeOpen && !isCtrl && !e.altKey && !e.metaKey && !e.shiftKey) {
+        e.preventDefault();
+        this.applyResizeFromModal();
+        return;
+      }
 
       // Ignore standard input shortcuts when typing, but keep File save/open/new
       if (isTypingField && e.key !== 'Escape' && !isFileShortcut) {
@@ -976,12 +1011,7 @@ class PaintApp {
           this.selectionTool.cutSelection();
         }
       } else if (e.key === 'Enter') {
-        if (this.blurBar && this.blurBar.style.display === 'flex') {
-          this.blurTool.apply();
-          this.closeBlurAdjustment(true);
-        } else if (this.state.selection) {
-          this.selectionTool.cropToSelection();
-        }
+        this.handleEnterAction();
       }
 
       // Transformations & Resize

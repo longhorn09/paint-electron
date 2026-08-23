@@ -99,7 +99,7 @@ function buildAppMenu(mainWindow) {
         {
           label: 'Crop to Selection',
           accelerator: 'Enter',
-          click: () => mainWindow?.webContents.executeJavaScript('window.app?.selectionTool?.cropToSelection()')
+          click: () => mainWindow?.webContents.executeJavaScript('window.app?.handleEnterAction()')
         },
         { type: 'separator' },
         {

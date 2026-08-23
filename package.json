@@ -18,8 +18,10 @@
     "directories": {
       "output": "release"
     },
+    "icon": "assets/icon.png",
     "files": [
       "src/**/*",
+      "assets/**/*",
       "package.json",
       "node_modules/gifenc/**/*"
     ],
@@ -28,7 +30,9 @@
         "AppImage",
         "deb"
       ],
-      "category": "Graphics"
+      "category": "Graphics",
+      "syncDesktopName": true,
+      "maintainer": "Norman Tang <norman@normstorm.com>"
     },
     "win": {
       "target": [
@@ -45,7 +49,11 @@
     "linux",
     "photo-editor"
   ],
-  "author": "",
+  "author": {
+    "name": "Norman Tang",
+    "email": "norman@normstorm.com"
+  },
+  "desktopName": "Paint",
   "license": "MIT",
   "repository": {
     "type": "git",
