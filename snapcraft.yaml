@@ -1,0 +1,65 @@
+name: paint-electron
+title: Paint
+base: core24
+adopt-info: paint-electron
+license: MIT
+grade: stable
+confinement: strict
+icon: assets/icon.png
+summary: Fast, essential image editor
+description: |
+  Paint is a simple desktop image editor for crop, resize, rotate, blur,
+  and converting PNG, JPEG, WebP, and GIF files.
+
+  The Snap Store name is paint-electron because paint is already taken.
+  The app still appears as Paint in the dock and application menu.
+
+contact: https://github.com/longhorn09/paint-electron/issues
+issues: https://github.com/longhorn09/paint-electron/issues
+source-code: https://github.com/longhorn09/paint-electron
+website: https://github.com/longhorn09/paint-electron
+
+platforms:
+  amd64:
+    build-on: [amd64]
+    build-for: [amd64]
+
+apps:
+  paint-electron:
+    command: bin/paint-electron
+    common-id: com.paint.electron
+    extensions: [gnome]
+    plugs:
+      - home
+      - removable-media
+      - browser-support
+      - network
+      - opengl
+    environment:
+      TMPDIR: $XDG_RUNTIME_DIR
+
+parts:
+  paint-electron:
+    plugin: nil
+    source: .
+    build-snaps:
+      - node/22/stable
+    build-packages:
+      - python3
+      - make
+      - gcc
+      - g++
+    override-pull: |
+      craftctl default
+      craftctl set version="$(sed -n 's/.*"version": *"\([^"]*\)".*/\1/p' package.json | head -1)"
+    override-build: |
+      set -eu
+      npm ci
+      npx electron-builder --linux dir --publish never
+      install -d "$CRAFT_PART_INSTALL/opt/Paint"
+      cp -a release/linux-unpacked/. "$CRAFT_PART_INSTALL/opt/Paint/"
+      rm -f "$CRAFT_PART_INSTALL/opt/Paint/chrome-sandbox"
+      install -Dm755 snap/local/paint-electron.sh "$CRAFT_PART_INSTALL/bin/paint-electron"
+    prime:
+      - -opt/Paint/chrome-sandbox
+      - -opt/Paint/LICENSES.chromium.html

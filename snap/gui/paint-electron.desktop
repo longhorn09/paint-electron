@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Paint
+GenericName=Image Editor
+Comment=Fast, essential image editor with exact selection, resize, rotation, blur, and format conversion
+Exec=paint-electron %U
+Icon=${SNAP}/meta/gui/icon.png
+Terminal=false
+Categories=Graphics;2DGraphics;RasterGraphics;
+MimeType=image/png;image/jpeg;image/webp;image/gif;image/bmp;image/svg+xml;
+StartupWMClass=Paint
+Keywords=paint;image;editor;photo;draw;crop;blur;resize;
