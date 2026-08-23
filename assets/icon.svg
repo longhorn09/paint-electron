@@ -18,10 +18,8 @@
     </filter>
   </defs>
 
-  <!-- Light plate so the icon reads on a dark Ubuntu dock -->
   <rect x="28" y="28" width="456" height="456" rx="108" fill="url(#plate)" stroke="#e8d3b0" stroke-width="8" filter="url(#soft)"/>
 
-  <!-- Classic kidney palette -->
   <path
     d="M118 168
        C118 92, 214 58, 292 78
@@ -34,29 +32,16 @@
     stroke-width="8"
     stroke-linejoin="round"/>
 
-  <!-- Thumb hole -->
   <circle cx="348" cy="214" r="38" fill="#fff8ef" stroke="#8a5a2a" stroke-width="10"/>
-  <circle cx="348" cy="214" r="22" fill="#e8d3b0"/>
 
-  <!-- Paint wells: large, high-contrast blobs -->
-  <circle cx="188" cy="168" r="36" fill="#e11d48"/>
-  <circle cx="256" cy="148" r="34" fill="#f59e0b"/>
-  <circle cx="214" cy="236" r="34" fill="#2563eb"/>
-  <circle cx="168" cy="288" r="32" fill="#16a34a"/>
-  <circle cx="248" cy="292" r="32" fill="#7c3aed"/>
-  <circle cx="206" cy="354" r="28" fill="#111827"/>
-  <circle cx="286" cy="348" r="26" fill="#ffffff" stroke="#8a5a2a" stroke-width="4"/>
+  <!-- Three primary paint wells -->
+  <circle cx="200" cy="176" r="40" fill="#e11d48"/>
+  <circle cx="248" cy="268" r="40" fill="#2563eb"/>
+  <circle cx="176" cy="320" r="40" fill="#16a34a"/>
 
-  <!-- Highlights on wet paint -->
-  <circle cx="176" cy="156" r="8" fill="#ffffff" opacity="0.45"/>
-  <circle cx="244" cy="138" r="7" fill="#ffffff" opacity="0.4"/>
-  <circle cx="202" cy="224" r="7" fill="#ffffff" opacity="0.4"/>
-
-  <!-- Paintbrush across the palette -->
   <g transform="translate(318 318) rotate(-38)">
     <rect x="-10" y="-132" width="20" height="118" rx="8" fill="url(#handle)"/>
-    <rect x="-16" y="-18" width="32" height="28" rx="5" fill="#cbd5e1" stroke="#64748b" stroke-width="3"/>
+    <rect x="-16" y="-18" width="32" height="28" rx="5" fill="#cbd5e1"/>
     <path d="M-16 10 C-20 48, 0 72, 0 92 C0 72, 20 48, 16 10 Z" fill="#1e293b"/>
-    <path d="M-8 18 C-6 50, 2 68, 2 84 C0 64, 8 46, 8 18 Z" fill="#e11d48"/>
   </g>
 </svg>
