@@ -118,17 +118,25 @@ console.log('4. Testing Proportional Resize Math...');
 {
   const originalW = 1920;
   const originalH = 1080;
-  const aspectRatio = originalW / originalH;
 
-  // Specify Width = 1280
+  // Specify Width = 1280 (must use the source image ratio, not a stale 4:3 default)
   const newW = 1280;
-  const scaledH = Math.round(newW / aspectRatio);
+  const scaledH = Math.round(newW * (originalH / originalW));
   assert.strictEqual(scaledH, 720, '1920x1080 scaled to width 1280 should yield height 720');
+  assert.notStrictEqual(
+    Math.round(newW * (600 / 800)),
+    scaledH,
+    'A stale 800x600 source would produce the wrong locked height'
+  );
 
   // Specify Height = 540
   const newH = 540;
-  const scaledW = Math.round(newH * aspectRatio);
+  const scaledW = Math.round(newH * (originalW / originalH));
   assert.strictEqual(scaledW, 960, '1920x1080 scaled to height 540 should yield width 960');
+
+  // Non-16:9 image: 1000x400 to a fixed width of 250
+  const portraitH = Math.round(250 * (400 / 1000));
+  assert.strictEqual(portraitH, 100, '1000x400 scaled to width 250 should yield height 100');
 
   console.log('   ✓ Proportional scaling math verified.');
 }

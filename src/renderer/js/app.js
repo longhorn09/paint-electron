@@ -283,8 +283,8 @@ class PaintApp {
     const btnCancel = document.getElementById('btn-resize-cancel');
 
     let isLocked = true;
-    let originalW = 800;
-    let originalH = 600;
+    this.resizeSourceW = 800;
+    this.resizeSourceH = 600;
 
     lockBtn?.addEventListener('click', () => {
       isLocked = !isLocked;
@@ -292,47 +292,50 @@ class PaintApp {
       lockBtn.title = isLocked ? 'Aspect ratio locked' : 'Aspect ratio unlocked';
     });
 
+    const sourceW = () => Math.max(1, this.resizeSourceW);
+    const sourceH = () => Math.max(1, this.resizeSourceH);
+
     const updateFromWidth = (val) => {
       const w = parseInt(val, 10);
       if (isNaN(w) || w <= 0) return;
-      wPctInput.value = Math.round((w / originalW) * 100);
+      wPctInput.value = Math.round((w / sourceW()) * 100);
       if (isLocked) {
-        const h = Math.round(w * (originalH / originalW));
+        const h = Math.round(w * (sourceH() / sourceW()));
         hInput.value = h;
-        hPctInput.value = Math.round((h / originalH) * 100);
+        hPctInput.value = Math.round((h / sourceH()) * 100);
       }
     };
 
     const updateFromHeight = (val) => {
       const h = parseInt(val, 10);
       if (isNaN(h) || h <= 0) return;
-      hPctInput.value = Math.round((h / originalH) * 100);
+      hPctInput.value = Math.round((h / sourceH()) * 100);
       if (isLocked) {
-        const w = Math.round(h * (originalW / originalH));
+        const w = Math.round(h * (sourceW() / sourceH()));
         wInput.value = w;
-        wPctInput.value = Math.round((w / originalW) * 100);
+        wPctInput.value = Math.round((w / sourceW()) * 100);
       }
     };
 
     const updateFromPctW = (val) => {
       const pct = parseFloat(val);
       if (isNaN(pct) || pct <= 0) return;
-      const w = Math.round(originalW * (pct / 100));
+      const w = Math.round(sourceW() * (pct / 100));
       wInput.value = w;
       if (isLocked) {
         hPctInput.value = pct;
-        hInput.value = Math.round(originalH * (pct / 100));
+        hInput.value = Math.round(sourceH() * (pct / 100));
       }
     };
 
     const updateFromPctH = (val) => {
       const pct = parseFloat(val);
       if (isNaN(pct) || pct <= 0) return;
-      const h = Math.round(originalH * (pct / 100));
+      const h = Math.round(sourceH() * (pct / 100));
       hInput.value = h;
       if (isLocked) {
         wPctInput.value = pct;
-        wInput.value = Math.round(originalW * (pct / 100));
+        wInput.value = Math.round(sourceW() * (pct / 100));
       }
     };
 
@@ -353,8 +356,8 @@ class PaintApp {
           const [pw, ph] = preset.split('x').map(Number);
           wInput.value = pw;
           hInput.value = ph;
-          wPctInput.value = Math.round((pw / originalW) * 100);
-          hPctInput.value = Math.round((ph / originalH) * 100);
+          wPctInput.value = Math.round((pw / sourceW()) * 100);
+          hPctInput.value = Math.round((ph / sourceH()) * 100);
         }
       });
     });
@@ -385,6 +388,8 @@ class PaintApp {
 
     const curW = this.state.width;
     const curH = this.state.height;
+    this.resizeSourceW = Math.max(1, curW);
+    this.resizeSourceH = Math.max(1, curH);
 
     if (infoSpan) infoSpan.textContent = `Current: ${curW} × ${curH} px`;
     if (wInput) wInput.value = curW;
