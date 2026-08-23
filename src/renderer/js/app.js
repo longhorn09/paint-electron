@@ -7,7 +7,7 @@ import { BlurTool } from './tools/blur.js';
 import { PickerTool } from './tools/picker.js';
 import { FillTool } from './tools/fill.js';
 import { loadImageFromDataUrl, getCanvasFileBuffer, getCanvasPngDataUrl } from './utils/file-io.js';
-import { ensureSaveExtension, getPathExtension, normalizeSaveExt } from '../../shared/save-path.js';
+import { applySaveExtension, getPathExtension, normalizeSaveExt } from '../../shared/save-path.js';
 
 class PaintApp {
   constructor() {
@@ -28,6 +28,7 @@ class PaintApp {
     // Modals and Drawers
     this.resizeModal = document.getElementById('resize-modal');
     this.newImageModal = document.getElementById('new-image-modal');
+    this.saveAsModal = document.getElementById('save-as-modal');
     this.aboutModal = document.getElementById('about-modal');
     this.blurBar = document.getElementById('blur-adjust-bar');
 
@@ -111,6 +112,7 @@ class PaintApp {
     // 5. Image Resize Button & Modal
     document.getElementById('btn-open-resize')?.addEventListener('click', () => this.openResizeModal());
     this.initResizeModal();
+    this.initSaveAsModal();
 
     // About & Help Button & Modal
     document.getElementById('btn-open-about')?.addEventListener('click', () => this.openAboutModal());
@@ -664,6 +666,77 @@ class PaintApp {
     if (active && typeof active.blur === 'function') active.blur();
   }
 
+  initSaveAsModal() {
+    const modal = this.saveAsModal;
+    const nameInput = document.getElementById('save-as-name-input');
+    const typeSelect = document.getElementById('save-as-type-select');
+    const btnContinue = document.getElementById('btn-save-as-continue');
+    const btnCancel = document.getElementById('btn-save-as-cancel');
+
+    const syncNameToType = () => {
+      if (!nameInput || !typeSelect) return;
+      const current = nameInput.value.trim() || 'untitled';
+      nameInput.value = applySaveExtension(current, typeSelect.value);
+    };
+
+    typeSelect?.addEventListener('change', syncNameToType);
+
+    btnContinue?.addEventListener('click', () => {
+      syncNameToType();
+      const fileName = (nameInput?.value || 'untitled').trim() || 'untitled';
+      const format = normalizeSaveExt(typeSelect?.value || 'png');
+      this.closeModal(modal);
+      const resolve = this._saveAsResolver;
+      this._saveAsResolver = null;
+      resolve?.({ fileName: applySaveExtension(fileName, format), format });
+    });
+
+    btnCancel?.addEventListener('click', () => this.cancelSaveAsPrompt());
+
+    nameInput?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        e.stopPropagation();
+        btnContinue?.click();
+      }
+    });
+  }
+
+  cancelSaveAsPrompt() {
+    this.closeModal(this.saveAsModal);
+    const resolve = this._saveAsResolver;
+    this._saveAsResolver = null;
+    resolve?.(null);
+  }
+
+  promptSaveAsOptions() {
+    const modal = this.saveAsModal;
+    const nameInput = document.getElementById('save-as-name-input');
+    const typeSelect = document.getElementById('save-as-type-select');
+
+    const sourcePath = this.state.filePath || this.state.fileName || 'untitled.png';
+    const slash = Math.max(sourcePath.lastIndexOf('/'), sourcePath.lastIndexOf('\\'));
+    const baseName = slash >= 0 ? sourcePath.slice(slash + 1) : sourcePath;
+    const format = normalizeSaveExt(this.state.fileFormat || getPathExtension(baseName) || 'png');
+
+    if (typeSelect) typeSelect.value = format === 'jpeg' ? 'jpg' : format;
+    if (nameInput) nameInput.value = applySaveExtension(baseName || 'untitled', typeSelect?.value || format);
+
+    if (!modal) {
+      return Promise.resolve({
+        fileName: applySaveExtension(baseName || 'untitled', format),
+        format
+      });
+    }
+
+    return new Promise((resolve) => {
+      this._saveAsResolver = resolve;
+      modal.style.display = 'flex';
+      nameInput?.focus();
+      nameInput?.select();
+    });
+  }
+
   async handleSaveFile(saveAs = false) {
     if (this._saveInProgress) return;
     this._saveInProgress = true;
@@ -682,22 +755,31 @@ class PaintApp {
           return;
         }
 
-        const defaultName = this.state.fileName || 'untitled.png';
-        const nameExt = defaultName.includes('.') ? defaultName.split('.').pop() : '';
-        const defaultExt = this.state.fileFormat || nameExt || 'png';
+        const choice = await this.promptSaveAsOptions();
+        if (!choice) return;
+
+        format = choice.format;
+        const sourcePath = this.state.filePath || '';
+        const slash = Math.max(sourcePath.lastIndexOf('/'), sourcePath.lastIndexOf('\\'));
+        const dir = slash >= 0 ? sourcePath.slice(0, slash) : '';
+        const sep = sourcePath.includes('\\') ? '\\' : '/';
+        const defaultPath = dir ? `${dir}${sep}${choice.fileName}` : choice.fileName;
 
         targetPath = await window.electronAPI.saveAsDialog({
-          defaultName,
-          defaultExt
+          defaultName: choice.fileName,
+          defaultPath,
+          defaultExt: format
         });
 
         if (!targetPath) return; // User cancelled
       }
 
-      // Native Linux dialogs often omit the selected type's extension
-      targetPath = ensureSaveExtension(targetPath, format);
       const pathExt = getPathExtension(targetPath);
-      if (pathExt) format = normalizeSaveExt(pathExt);
+      if (pathExt) {
+        format = normalizeSaveExt(pathExt);
+      } else {
+        targetPath = applySaveExtension(targetPath, format);
+      }
 
       const { buffer } = await getCanvasFileBuffer(this.state.imageCanvas, format);
 
@@ -868,6 +950,8 @@ class PaintApp {
           this.aboutModal.style.display = 'none';
         } else if (this.resizeModal && this.resizeModal.style.display === 'flex') {
           this.closeModal(this.resizeModal);
+        } else if (this.saveAsModal && this.saveAsModal.style.display === 'flex') {
+          this.cancelSaveAsPrompt();
         } else if (this.newImageModal && this.newImageModal.style.display === 'flex') {
           this.closeModal(this.newImageModal);
         } else {

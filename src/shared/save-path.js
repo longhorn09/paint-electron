@@ -32,18 +32,30 @@ export function getPathExtension(filePath) {
 }
 
 /**
- * If the filename already has a known image extension, leave it.
- * Otherwise append the selected save-as type (png, jpg, webp, gif).
+ * Apply the selected save-as type to a path.
+ * Missing extensions are appended; a different known image extension is replaced
+ * (`photo.jpg` + PNG → `photo.png`). Same type is left unchanged.
  *
  * @param {string} filePath
  * @param {string} selectedExt
  * @returns {string}
  */
-export function ensureSaveExtension(filePath, selectedExt) {
+export function applySaveExtension(filePath, selectedExt) {
   if (!filePath) return filePath;
+  const wanted = normalizeSaveExt(selectedExt);
   const existing = getPathExtension(filePath);
-  if (KNOWN_SAVE_EXTENSIONS[existing]) return filePath;
-  return `${filePath}.${normalizeSaveExt(selectedExt)}`;
+  if (KNOWN_SAVE_EXTENSIONS[existing]) {
+    if (normalizeSaveExt(existing) === wanted) return filePath;
+    return `${filePath.slice(0, filePath.length - existing.length - 1)}.${wanted}`;
+  }
+  return `${filePath}.${wanted}`;
+}
+
+/**
+ * @deprecated Use applySaveExtension — kept so older call sites keep working.
+ */
+export function ensureSaveExtension(filePath, selectedExt) {
+  return applySaveExtension(filePath, selectedExt);
 }
 
 /**

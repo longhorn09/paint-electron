@@ -2,7 +2,7 @@ const { app, BrowserWindow, ipcMain, dialog, Menu, clipboard, nativeImage, shell
 const path = require('path');
 const fs = require('fs');
 const { buildAppMenu } = require('./menu');
-const { ensureSaveExtension, normalizeSaveExt, resolveSelectedSaveExt } = require('../shared/save-path.cjs');
+const { applySaveExtension, normalizeSaveExt, resolveSelectedSaveExt } = require('../shared/save-path.cjs');
 
 app.name = 'Paint';
 
@@ -180,12 +180,15 @@ ipcMain.handle('dialog:openFile', async () => {
 ipcMain.handle('dialog:saveAs', async (event, options = {}) => {
   try {
     const defaultExt = normalizeSaveExt(options.defaultExt || 'png');
-    const defaultName = ensureSaveExtension(options.defaultName || `untitled.${defaultExt}`, defaultExt);
+    const defaultName = applySaveExtension(options.defaultName || `untitled.${defaultExt}`, defaultExt);
+    const defaultPath = options.defaultPath
+      ? applySaveExtension(options.defaultPath, defaultExt)
+      : defaultName;
     const filters = buildSaveFilters(defaultExt);
 
     const saveDialogOptions = {
       title: 'Save Image As',
-      defaultPath: defaultName,
+      defaultPath,
       filters
     };
     if (process.platform === 'linux') {
@@ -197,7 +200,7 @@ ipcMain.handle('dialog:saveAs', async (event, options = {}) => {
     if (result.canceled || !result.filePath) return null;
 
     const selectedExt = resolveSelectedSaveExt(result, filters, defaultExt);
-    const finalPath = ensureSaveExtension(result.filePath, selectedExt);
+    const finalPath = applySaveExtension(result.filePath, selectedExt);
 
     if (finalPath !== result.filePath && fs.existsSync(finalPath)) {
       const { response } = await dialog.showMessageBox(mainWindow, {

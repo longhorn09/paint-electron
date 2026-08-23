@@ -3,7 +3,7 @@ import { createRequire } from 'node:module';
 import { applyGaussianBlur } from '../src/renderer/js/utils/fast-blur.js';
 import { encodeCanvasToGif } from '../src/renderer/js/utils/gif-export.js';
 import { HistoryManager } from '../src/renderer/js/history.js';
-import { ensureSaveExtension, resolveSelectedSaveExt } from '../src/shared/save-path.js';
+import { applySaveExtension, ensureSaveExtension, resolveSelectedSaveExt } from '../src/shared/save-path.js';
 
 const require = createRequire(import.meta.url);
 const savePathCjs = require('../src/shared/save-path.cjs');
@@ -152,9 +152,21 @@ console.log('5. Testing Save-As extension append...');
   assert.strictEqual(ensureSaveExtension('/tmp/vacation', 'png'), '/tmp/vacation.png');
   assert.strictEqual(ensureSaveExtension('/tmp/vacation', 'jpeg'), '/tmp/vacation.jpg');
   assert.strictEqual(ensureSaveExtension('/tmp/vacation', 'jpg'), '/tmp/vacation.jpg');
-  assert.strictEqual(ensureSaveExtension('/tmp/vacation.webp', 'png'), '/tmp/vacation.webp');
-  assert.strictEqual(ensureSaveExtension('/tmp/vacation.PNG', 'jpg'), '/tmp/vacation.PNG');
+  assert.strictEqual(applySaveExtension('/tmp/vacation.webp', 'png'), '/tmp/vacation.png');
+  assert.strictEqual(applySaveExtension('/tmp/vacation.PNG', 'jpg'), '/tmp/vacation.jpg');
   assert.strictEqual(ensureSaveExtension('my.photo', 'gif'), 'my.photo.gif');
+  assert.strictEqual(
+    applySaveExtension('lamborghini-revuelto-4k-2025-og.jpg', 'png'),
+    'lamborghini-revuelto-4k-2025-og.png'
+  );
+  assert.strictEqual(
+    applySaveExtension('lamborghini-revuelto-4k-2025-og.jpg', 'jpg'),
+    'lamborghini-revuelto-4k-2025-og.jpg'
+  );
+  assert.strictEqual(
+    applySaveExtension('/pics/photo.jpeg', 'webp'),
+    '/pics/photo.webp'
+  );
 
   const filters = [
     { name: 'PNG', extensions: ['png'] },
@@ -168,8 +180,8 @@ console.log('5. Testing Save-As extension append...');
   );
   assert.strictEqual(resolveSelectedSaveExt({}, filters, 'gif'), 'gif');
   assert.strictEqual(
-    savePathCjs.ensureSaveExtension('/tmp/vacation', 'jpeg'),
-    ensureSaveExtension('/tmp/vacation', 'jpeg')
+    savePathCjs.applySaveExtension('lamborghini-revuelto-4k-2025-og.jpg', 'png'),
+    applySaveExtension('lamborghini-revuelto-4k-2025-og.jpg', 'png')
   );
 
   console.log('   ✓ Save-As extension append verified.');

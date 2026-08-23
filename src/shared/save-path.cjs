@@ -23,11 +23,19 @@ function getPathExtension(filePath) {
   return match ? match[1].toLowerCase() : '';
 }
 
-function ensureSaveExtension(filePath, selectedExt) {
+function applySaveExtension(filePath, selectedExt) {
   if (!filePath) return filePath;
+  const wanted = normalizeSaveExt(selectedExt);
   const existing = getPathExtension(filePath);
-  if (KNOWN_SAVE_EXTENSIONS[existing]) return filePath;
-  return `${filePath}.${normalizeSaveExt(selectedExt)}`;
+  if (KNOWN_SAVE_EXTENSIONS[existing]) {
+    if (normalizeSaveExt(existing) === wanted) return filePath;
+    return `${filePath.slice(0, filePath.length - existing.length - 1)}.${wanted}`;
+  }
+  return `${filePath}.${wanted}`;
+}
+
+function ensureSaveExtension(filePath, selectedExt) {
+  return applySaveExtension(filePath, selectedExt);
 }
 
 function resolveSelectedSaveExt(result, filters, fallbackExt) {
@@ -56,6 +64,7 @@ module.exports = {
   KNOWN_SAVE_EXTENSIONS,
   normalizeSaveExt,
   getPathExtension,
+  applySaveExtension,
   ensureSaveExtension,
   resolveSelectedSaveExt
 };

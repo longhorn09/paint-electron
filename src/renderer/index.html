@@ -330,6 +330,34 @@
     </div>
   </div>
 
+  <!-- Save As type + filename -->
+  <div id="save-as-modal" class="modal-backdrop" style="display: none;">
+    <div class="modal-dialog" style="width: 520px;">
+      <div class="modal-header">
+        <div class="modal-title">Save As</div>
+      </div>
+      <div class="modal-body">
+        <div class="form-row">
+          <span class="form-label">File name:</span>
+          <input type="text" id="save-as-name-input" class="input-text" style="width: 280px; text-align: left;">
+        </div>
+        <div class="form-row">
+          <span class="form-label">Save as type:</span>
+          <select id="save-as-type-select" class="input-num" style="width: 280px; text-align: left;">
+            <option value="png">PNG Image (*.png)</option>
+            <option value="jpg">JPEG Image (*.jpg)</option>
+            <option value="webp">WebP Image (*.webp)</option>
+            <option value="gif">GIF Image (*.gif)</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="btn-save-as-cancel" class="btn-icon">Cancel</button>
+        <button id="btn-save-as-continue" class="btn-icon btn-accent">Choose Location...</button>
+      </div>
+    </div>
+  </div>
+
   <!-- New Image Modal -->
   <div id="new-image-modal" class="modal-backdrop" style="display: none;">
     <div class="modal-dialog">
