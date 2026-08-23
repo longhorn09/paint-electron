@@ -1,7 +1,7 @@
 name: paint-electron
 title: Paint
 base: core24
-adopt-info: paint-electron
+adopt-info: metadata
 license: MIT
 grade: stable
 confinement: strict
@@ -24,12 +24,17 @@ platforms:
     build-on: [amd64]
     build-for: [amd64]
 
+# No GNOME extension: core24 injects a clone of github.com/canonical/gpu-snap
+# inside LXD, which often cannot reach GitHub. Electron already ships its UI.
 apps:
   paint-electron:
     command: bin/paint-electron
     common-id: com.paint.electron
-    extensions: [gnome]
     plugs:
+      - desktop
+      - desktop-legacy
+      - wayland
+      - x11
       - home
       - removable-media
       - browser-support
@@ -39,27 +44,44 @@ apps:
       TMPDIR: $XDG_RUNTIME_DIR
 
 parts:
-  paint-electron:
+  metadata:
     plugin: nil
     source: .
-    build-snaps:
-      - node/22/stable
-    build-packages:
-      - python3
-      - make
-      - gcc
-      - g++
     override-pull: |
       craftctl default
       craftctl set version="$(sed -n 's/.*"version": *"\([^"]*\)".*/\1/p' package.json | head -1)"
+    prime:
+      - -*
+
+  paint-electron:
+    plugin: dump
+    source: release/linux-unpacked
+    stage-packages:
+      - libasound2t64
+      - libnspr4
+      - libnss3
+      - libxss1
+      - libsecret-1-0
+      - libgtk-3-0
+      - libnotify4
+      - libgbm1
     override-build: |
       set -eu
-      npm ci
-      npx electron-builder --linux dir --publish never
+      if [ ! -x "$CRAFT_PART_SRC/paint-electron" ]; then
+        echo "Missing release/linux-unpacked. Run: npm run dist:snap" >&2
+        exit 1
+      fi
+      craftctl default
       install -d "$CRAFT_PART_INSTALL/opt/Paint"
-      cp -a release/linux-unpacked/. "$CRAFT_PART_INSTALL/opt/Paint/"
+      for item in "$CRAFT_PART_INSTALL"/*; do
+        name="$(basename "$item")"
+        case "$name" in
+          opt|usr|lib|etc|bin|var|meta) continue ;;
+        esac
+        mv "$item" "$CRAFT_PART_INSTALL/opt/Paint/"
+      done
       rm -f "$CRAFT_PART_INSTALL/opt/Paint/chrome-sandbox"
-      install -Dm755 snap/local/paint-electron.sh "$CRAFT_PART_INSTALL/bin/paint-electron"
+      install -Dm755 "$CRAFT_PROJECT_DIR/snap/local/paint-electron.sh" "$CRAFT_PART_INSTALL/bin/paint-electron"
     prime:
       - -opt/Paint/chrome-sandbox
       - -opt/Paint/LICENSES.chromium.html

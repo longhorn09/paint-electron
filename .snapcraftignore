@@ -1,6 +1,8 @@
 node_modules/
-release/
 .git/
 *.snap
 *.deb
 *.AppImage
+release/*
+!release/linux-unpacked/
+!release/linux-unpacked/**

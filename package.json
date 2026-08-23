@@ -10,7 +10,8 @@
     "test": "node test/test-algorithms.js",
     "dist": "electron-builder",
     "dist:linux": "electron-builder --linux",
-    "dist:win": "electron-builder --win"
+    "dist:win": "electron-builder --win",
+    "dist:snap": "electron-builder --linux dir --publish never && snapcraft pack"
   },
   "build": {
     "appId": "com.paint.electron",
