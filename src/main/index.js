@@ -19,6 +19,24 @@ if (process.platform === 'linux') {
 let mainWindow = null;
 let currentFilePath = null;
 
+const SAVE_FILTERS = [
+  { name: 'PNG Image (*.png) [Lossless]', extensions: ['png'] },
+  { name: 'JPEG Image (*.jpg, *.jpeg)', extensions: ['jpg', 'jpeg'] },
+  { name: 'WebP Image (*.webp)', extensions: ['webp'] },
+  { name: 'GIF Image (*.gif)', extensions: ['gif'] }
+];
+
+function buildSaveFilters(preferredExt) {
+  const filters = SAVE_FILTERS.map((filter) => ({ ...filter, extensions: [...filter.extensions] }));
+  const preferred = String(preferredExt || 'png').toLowerCase().replace(/^\./, '');
+  const idx = filters.findIndex((filter) => filter.extensions.includes(preferred));
+  if (idx > 0) {
+    const [selected] = filters.splice(idx, 1);
+    filters.unshift(selected);
+  }
+  return filters;
+}
+
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1200,
@@ -159,22 +177,40 @@ ipcMain.handle('dialog:openFile', async () => {
 
 // 2. Save As Dialog
 ipcMain.handle('dialog:saveAs', async (event, options = {}) => {
-  const defaultExt = options.defaultExt || 'png';
-  const defaultName = options.defaultName || `untitled.${defaultExt}`;
-  
-  const { canceled, filePath } = await dialog.showSaveDialog(mainWindow, {
+  const { ensureSaveExtension, normalizeSaveExt, resolveSelectedSaveExt } = await import('../shared/save-path.js');
+  const defaultExt = normalizeSaveExt(options.defaultExt || 'png');
+  const defaultName = ensureSaveExtension(options.defaultName || `untitled.${defaultExt}`, defaultExt);
+  const filters = buildSaveFilters(defaultExt);
+
+  const saveDialogOptions = {
     title: 'Save Image As',
     defaultPath: defaultName,
-    filters: [
-      { name: 'PNG Image (*.png) [Lossless]', extensions: ['png'] },
-      { name: 'JPEG Image (*.jpg, *.jpeg)', extensions: ['jpg', 'jpeg'] },
-      { name: 'WebP Image (*.webp)', extensions: ['webp'] },
-      { name: 'GIF Image (*.gif)', extensions: ['gif'] }
-    ]
-  });
+    filters
+  };
+  if (process.platform === 'linux') {
+    saveDialogOptions.properties = ['showOverwriteConfirmation'];
+  }
 
-  if (canceled || !filePath) return null;
-  return filePath;
+  const result = await dialog.showSaveDialog(mainWindow, saveDialogOptions);
+
+  if (result.canceled || !result.filePath) return null;
+
+  const selectedExt = resolveSelectedSaveExt(result, filters, defaultExt);
+  const finalPath = ensureSaveExtension(result.filePath, selectedExt);
+
+  if (finalPath !== result.filePath && fs.existsSync(finalPath)) {
+    const { response } = await dialog.showMessageBox(mainWindow, {
+      type: 'warning',
+      buttons: ['Replace', 'Cancel'],
+      defaultId: 1,
+      cancelId: 1,
+      title: 'Replace file?',
+      message: `"${path.basename(finalPath)}" already exists. Do you want to replace it?`
+    });
+    if (response !== 0) return null;
+  }
+
+  return finalPath;
 });
 
 // 3. Write Image to File

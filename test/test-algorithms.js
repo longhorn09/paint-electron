@@ -2,6 +2,7 @@ import assert from 'node:assert';
 import { applyGaussianBlur } from '../src/renderer/js/utils/fast-blur.js';
 import { encodeCanvasToGif } from '../src/renderer/js/utils/gif-export.js';
 import { HistoryManager } from '../src/renderer/js/history.js';
+import { ensureSaveExtension, resolveSelectedSaveExt } from '../src/shared/save-path.js';
 
 console.log('🧪 Starting automated tests...\n');
 
@@ -139,6 +140,31 @@ console.log('4. Testing Proportional Resize Math...');
   assert.strictEqual(portraitH, 100, '1000x400 scaled to width 250 should yield height 100');
 
   console.log('   ✓ Proportional scaling math verified.');
+}
+
+// 5. Test Save-As extension append
+console.log('5. Testing Save-As extension append...');
+{
+  assert.strictEqual(ensureSaveExtension('/tmp/vacation', 'png'), '/tmp/vacation.png');
+  assert.strictEqual(ensureSaveExtension('/tmp/vacation', 'jpeg'), '/tmp/vacation.jpg');
+  assert.strictEqual(ensureSaveExtension('/tmp/vacation', 'jpg'), '/tmp/vacation.jpg');
+  assert.strictEqual(ensureSaveExtension('/tmp/vacation.webp', 'png'), '/tmp/vacation.webp');
+  assert.strictEqual(ensureSaveExtension('/tmp/vacation.PNG', 'jpg'), '/tmp/vacation.PNG');
+  assert.strictEqual(ensureSaveExtension('my.photo', 'gif'), 'my.photo.gif');
+
+  const filters = [
+    { name: 'PNG', extensions: ['png'] },
+    { name: 'JPEG', extensions: ['jpg', 'jpeg'] }
+  ];
+  assert.strictEqual(resolveSelectedSaveExt({ index: 2 }, filters, 'png'), 'jpg');
+  assert.strictEqual(resolveSelectedSaveExt({ filterIndex: 1 }, filters, 'jpg'), 'png');
+  assert.strictEqual(
+    resolveSelectedSaveExt({ selectedFilter: { extensions: ['webp'] } }, filters, 'png'),
+    'webp'
+  );
+  assert.strictEqual(resolveSelectedSaveExt({}, filters, 'gif'), 'gif');
+
+  console.log('   ✓ Save-As extension append verified.');
 }
 
 console.log('\n🎉 ALL ALGORITHM TESTS PASSED SUCCESSFULLY!');

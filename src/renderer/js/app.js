@@ -7,6 +7,7 @@ import { BlurTool } from './tools/blur.js';
 import { PickerTool } from './tools/picker.js';
 import { FillTool } from './tools/fill.js';
 import { loadImageFromDataUrl, getCanvasFileBuffer, getCanvasPngDataUrl } from './utils/file-io.js';
+import { ensureSaveExtension, getPathExtension, normalizeSaveExt } from '../../shared/save-path.js';
 
 class PaintApp {
   constructor() {
@@ -667,7 +668,8 @@ class PaintApp {
       }
 
       const defaultName = this.state.fileName || 'untitled.png';
-      const defaultExt = defaultName.split('.').pop() || 'png';
+      const nameExt = defaultName.includes('.') ? defaultName.split('.').pop() : '';
+      const defaultExt = this.state.fileFormat || nameExt || 'png';
 
       targetPath = await window.electronAPI.saveAsDialog({
         defaultName,
@@ -677,11 +679,10 @@ class PaintApp {
       if (!targetPath) return; // User cancelled
     }
 
-    // Determine target format from file extension
-    const extMatch = targetPath.match(/\.([a-zA-Z0-9]+)$/);
-    if (extMatch) {
-      format = extMatch[1].toLowerCase();
-    }
+    // Native Linux dialogs often omit the selected type's extension
+    targetPath = ensureSaveExtension(targetPath, format);
+    const pathExt = getPathExtension(targetPath);
+    if (pathExt) format = normalizeSaveExt(pathExt);
 
     // Get binary buffer for saving
     const { buffer } = await getCanvasFileBuffer(this.state.imageCanvas, format);
