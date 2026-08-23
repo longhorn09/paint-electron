@@ -4,6 +4,7 @@ import { applyGaussianBlur } from '../src/renderer/js/utils/fast-blur.js';
 import { encodeCanvasToGif } from '../src/renderer/js/utils/gif-export.js';
 import { HistoryManager } from '../src/renderer/js/history.js';
 import { applySaveExtension, ensureSaveExtension, resolveSelectedSaveExt } from '../src/shared/save-path.js';
+import { normalizeFileArg } from '../src/shared/open-path.js';
 
 const require = createRequire(import.meta.url);
 const savePathCjs = require('../src/shared/save-path.cjs');
@@ -185,6 +186,27 @@ console.log('5. Testing Save-As extension append...');
   );
 
   console.log('   ✓ Save-As extension append verified.');
+}
+
+console.log('6. Testing Open-With file argument parsing...');
+{
+  assert.strictEqual(
+    normalizeFileArg('file:///home/user/Pictures/lamborghini.jpg'),
+    '/home/user/Pictures/lamborghini.jpg'
+  );
+  assert.strictEqual(
+    normalizeFileArg('file:///home/user/My%20Photos/car%20revuelto.png'),
+    '/home/user/My Photos/car revuelto.png'
+  );
+  assert.strictEqual(
+    normalizeFileArg('"/tmp/quoted.jpg"'),
+    '/tmp/quoted.jpg'
+  );
+  assert.strictEqual(
+    normalizeFileArg('/tmp/plain.webp'),
+    '/tmp/plain.webp'
+  );
+  console.log('   ✓ Open-With file:// and path arguments verified.');
 }
 
 console.log('\n🎉 ALL ALGORITHM TESTS PASSED SUCCESSFULLY!');

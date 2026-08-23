@@ -865,6 +865,14 @@ class PaintApp {
       });
     }
 
+    if (window.electronAPI && window.electronAPI.consumeOpenFile) {
+      window.electronAPI.consumeOpenFile().then((opened) => {
+        if (opened) {
+          this.loadFromDataUrl(opened.dataUrl, opened.fileName, opened.filePath, opened.ext);
+        }
+      });
+    }
+
     if (window.electronAPI && window.electronAPI.onMenuCommand) {
       window.electronAPI.onMenuCommand((command) => {
         if (command === 'save') this.handleSaveFile(false);

@@ -3,6 +3,7 @@ const path = require('path');
 const fs = require('fs');
 const { buildAppMenu } = require('./menu');
 const { applySaveExtension, normalizeSaveExt, resolveSelectedSaveExt } = require('../shared/save-path.cjs');
+const { normalizeFileArg } = require('../shared/open-path.cjs');
 
 app.name = 'Paint';
 
@@ -19,6 +20,8 @@ if (process.platform === 'linux') {
 
 let mainWindow = null;
 let currentFilePath = null;
+let pendingOpenPayload = null;
+let lastDeliveredOpenPath = null;
 
 const SAVE_FILTERS = [
   { name: 'PNG Image (*.png) [Lossless]', extensions: ['png'] },
@@ -61,14 +64,13 @@ function createWindow() {
 
   buildAppMenu(mainWindow);
 
+  mainWindow.webContents.on('did-finish-load', () => {
+    deliverPendingOpen();
+  });
+
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
-
-    // Check if a file was passed as CLI argument (e.g. paint-electron /path/to/img.png)
-    const fileArg = getFileFromArgs(process.argv);
-    if (fileArg) {
-      loadFileFromPath(fileArg);
-    }
+    deliverPendingOpen();
   });
 
   mainWindow.on('closed', () => {
@@ -76,63 +78,120 @@ function createWindow() {
   });
 }
 
-function getFileFromArgs(argv) {
-  const possibleFiles = argv.slice(app.isPackaged ? 1 : 2).filter(arg => !arg.startsWith('--') && !arg.startsWith('-'));
-  for (const arg of possibleFiles) {
-    const resolved = path.resolve(arg);
-    if (fs.existsSync(resolved) && fs.statSync(resolved).isFile()) {
-      return resolved;
-    }
+function resolveExistingFile(arg) {
+  const normalized = normalizeFileArg(arg);
+  if (!normalized) return null;
+  const resolved = path.resolve(normalized);
+  try {
+    if (fs.existsSync(resolved) && fs.statSync(resolved).isFile()) return resolved;
+  } catch {
+    return null;
   }
   return null;
 }
 
+function getFileFromArgs(argv = process.argv) {
+  const skip = new Set();
+  if (argv[0]) skip.add(path.resolve(argv[0]));
+  if (!app.isPackaged && argv[1]) {
+    try {
+      skip.add(path.resolve(argv[1]));
+    } catch {
+      // ignore
+    }
+  }
+
+  for (const arg of argv.slice(1)) {
+    if (String(arg).startsWith('-')) continue;
+    const resolved = resolveExistingFile(arg);
+    if (resolved && !skip.has(resolved)) return resolved;
+  }
+  return null;
+}
+
+function readOpenPayload(filePath) {
+  const ext = path.extname(filePath).toLowerCase();
+  const validExtensions = ['.png', '.jpg', '.jpeg', '.webp', '.gif', '.bmp', '.svg'];
+  if (!validExtensions.includes(ext)) {
+    dialog.showErrorBox('Unsupported File', `File format ${ext} is not supported.`);
+    return null;
+  }
+
+  const data = fs.readFileSync(filePath);
+  const mimeTypes = {
+    '.png': 'image/png',
+    '.jpg': 'image/jpeg',
+    '.jpeg': 'image/jpeg',
+    '.webp': 'image/webp',
+    '.gif': 'image/gif',
+    '.bmp': 'image/bmp',
+    '.svg': 'image/svg+xml'
+  };
+  const mimeType = mimeTypes[ext] || 'image/png';
+  return {
+    filePath,
+    fileName: path.basename(filePath),
+    dataUrl: `data:${mimeType};base64,${data.toString('base64')}`,
+    ext: ext.replace('.', '')
+  };
+}
+
+function deliverPendingOpen() {
+  if (!pendingOpenPayload || pendingOpenPayload.filePath === lastDeliveredOpenPath) return;
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  if (mainWindow.webContents.isLoading() || mainWindow.webContents.isLoadingMainFrame()) return;
+
+  lastDeliveredOpenPath = pendingOpenPayload.filePath;
+  const payload = pendingOpenPayload;
+  pendingOpenPayload = null;
+  mainWindow.webContents.send('file:opened', payload);
+}
+
 function loadFileFromPath(filePath) {
   try {
-    const ext = path.extname(filePath).toLowerCase();
-    const validExtensions = ['.png', '.jpg', '.jpeg', '.webp', '.gif', '.bmp', '.svg'];
-    if (!validExtensions.includes(ext)) {
-      dialog.showErrorBox('Unsupported File', `File format ${ext} is not supported.`);
-      return;
-    }
-
-    const data = fs.readFileSync(filePath);
-    const mimeTypes = {
-      '.png': 'image/png',
-      '.jpg': 'image/jpeg',
-      '.jpeg': 'image/jpeg',
-      '.webp': 'image/webp',
-      '.gif': 'image/gif',
-      '.bmp': 'image/bmp',
-      '.svg': 'image/svg+xml'
-    };
-    const mimeType = mimeTypes[ext] || 'image/png';
-    const base64 = `data:${mimeType};base64,${data.toString('base64')}`;
-
+    const payload = readOpenPayload(filePath);
+    if (!payload) return;
     currentFilePath = filePath;
-    if (mainWindow && mainWindow.webContents) {
-      mainWindow.webContents.send('file:opened', {
-        filePath,
-        fileName: path.basename(filePath),
-        dataUrl: base64,
-        ext: ext.replace('.', '')
-      });
-    }
+    pendingOpenPayload = payload;
+    deliverPendingOpen();
   } catch (err) {
     dialog.showErrorBox('Error Opening File', err.message);
   }
 }
 
-// App lifecycle
-app.whenReady().then(() => {
-  createWindow();
-
-  app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow();
+const gotTheLock = app.requestSingleInstanceLock();
+if (!gotTheLock) {
+  app.quit();
+} else {
+  app.on('second-instance', (_event, argv) => {
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.focus();
     }
+    const fileArg = getFileFromArgs(argv);
+    if (fileArg) loadFileFromPath(fileArg);
   });
-});
+
+  app.whenReady().then(() => {
+    const startupFile = getFileFromArgs(process.argv);
+    if (startupFile) {
+      try {
+        pendingOpenPayload = readOpenPayload(startupFile);
+        currentFilePath = startupFile;
+      } catch (err) {
+        dialog.showErrorBox('Error Opening File', err.message);
+      }
+    }
+
+    createWindow();
+
+    app.on('activate', () => {
+      if (BrowserWindow.getAllWindows().length === 0) {
+        createWindow();
+      }
+    });
+  });
+}
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
@@ -140,19 +199,15 @@ app.on('window-all-closed', () => {
   }
 });
 
-// Second instance handling (e.g. opening another file with the app already open)
-app.on('second-instance', (event, argv) => {
-  if (mainWindow) {
-    if (mainWindow.isMinimized()) mainWindow.restore();
-    mainWindow.focus();
-    const fileArg = getFileFromArgs(argv);
-    if (fileArg) {
-      loadFileFromPath(fileArg);
-    }
-  }
-});
-
 // IPC Handlers
+
+ipcMain.handle('file:consumeOpen', () => {
+  if (!pendingOpenPayload) return null;
+  const payload = pendingOpenPayload;
+  lastDeliveredOpenPath = payload.filePath;
+  pendingOpenPayload = null;
+  return payload;
+});
 
 // 1. Open File Dialog
 ipcMain.handle('dialog:openFile', async () => {

@@ -8,6 +8,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // File I/O
   writeFile: (data) => ipcRenderer.invoke('file:write', data),
+  consumeOpenFile: () => ipcRenderer.invoke('file:consumeOpen'),
 
   // Clipboard
   writeClipboardImage: (dataUrl) => ipcRenderer.invoke('clipboard:writeImage', dataUrl),

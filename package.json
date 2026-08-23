@@ -32,7 +32,15 @@
       ],
       "category": "Graphics",
       "syncDesktopName": true,
-      "maintainer": "Norman Tang <norman@normstorm.com>"
+      "maintainer": "Norman Tang <norman@normstorm.com>",
+      "mimeTypes": [
+        "image/png",
+        "image/jpeg",
+        "image/webp",
+        "image/gif",
+        "image/bmp",
+        "image/svg+xml"
+      ]
     },
     "win": {
       "target": [
