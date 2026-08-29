@@ -5,7 +5,9 @@ adopt-info: metadata
 license: MIT
 grade: stable
 confinement: strict
-icon: assets/icon.png
+# Store and dock icon. Must be 40–512px (256 recommended) and <256KB.
+# snap/gui/* is copied to meta/gui/; a 1024px assets/icon.png is rejected.
+icon: snap/gui/paint-electron.png
 summary: Fast, essential image editor
 description: |
   Paint is a simple desktop image editor for crop, resize, rotate, blur,

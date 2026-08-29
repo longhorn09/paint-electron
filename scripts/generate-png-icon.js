@@ -8,6 +8,9 @@ const { app, BrowserWindow } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
+// Snap Store rejects icons outside 40–512px. Force 1x so HiDPI does not emit 1024.
+app.commandLine.appendSwitch('force-device-scale-factor', '1');
+
 app.whenReady().then(async () => {
   const win = new BrowserWindow({
     width: 512,
@@ -21,13 +24,20 @@ app.whenReady().then(async () => {
   const html = \`<!DOCTYPE html><html><body style="margin:0;padding:0;overflow:hidden;background:transparent;"><img src="data:image/svg+xml;utf8,\${encodeURIComponent(svgData)}" width="512" height="512"/></body></html>\`;
 
   await win.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(html));
-  // Wait a moment for rendering
   await new Promise(r => setTimeout(r, 600));
-  const image = await win.webContents.capturePage();
+  const image = (await win.webContents.capturePage()).resize({
+    width: 512,
+    height: 512,
+    quality: 'best'
+  });
   const pngBuffer = image.toPNG();
-  const outPath = path.resolve(__dirname, '../assets/icon.png');
-  fs.writeFileSync(outPath, pngBuffer);
-  console.log('Successfully generated', outPath);
+  const assetsPath = path.resolve(__dirname, '../assets/icon.png');
+  const snapPath = path.resolve(__dirname, '../snap/gui/paint-electron.png');
+  fs.mkdirSync(path.dirname(snapPath), { recursive: true });
+  fs.writeFileSync(assetsPath, pngBuffer);
+  fs.writeFileSync(snapPath, pngBuffer);
+  console.log('Successfully generated', assetsPath);
+  console.log('Successfully generated', snapPath);
   app.quit();
 });
 `;
