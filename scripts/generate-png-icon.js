@@ -11,50 +11,24 @@ const fs = require('fs');
 // Snap Store rejects icons outside 40–512px. Force 1x so HiDPI does not emit 1024.
 app.commandLine.appendSwitch('force-device-scale-factor', '1');
 
-// capturePage() composites onto white. Flood-fill that white so dock/store
-// corners are transparent; keep the cream plate and palette.
-function punchWhiteBackground(image) {
+// capturePage() cannot keep SVG alpha. Render on magenta, then punch that
+// color (and the thumb hole) to transparent.
+const CHROMA = '#FF00FF';
+function punchChromaBackground(image) {
   const { width, height } = image.getSize();
   const bitmap = Buffer.from(image.toBitmap());
-  const seen = new Uint8Array(width * height);
-  const queue = [];
-
-  const isBg = (idx) => {
-    const i = idx * 4;
+  for (let i = 0; i < bitmap.length; i += 4) {
     const b = bitmap[i];
     const g = bitmap[i + 1];
     const r = bitmap[i + 2];
-    return r >= 250 && g >= 250 && b >= 250;
-  };
-
-  const tryPush = (x, y) => {
-    if (x < 0 || y < 0 || x >= width || y >= height) return;
-    const idx = y * width + x;
-    if (seen[idx]) return;
-    seen[idx] = 1;
-    if (isBg(idx)) queue.push(idx);
-  };
-
-  tryPush(0, 0);
-  tryPush(width - 1, 0);
-  tryPush(0, height - 1);
-  tryPush(width - 1, height - 1);
-
-  while (queue.length) {
-    const idx = queue.pop();
-    const i = idx * 4;
-    bitmap[i] = 0;
-    bitmap[i + 1] = 0;
-    bitmap[i + 2] = 0;
-    bitmap[i + 3] = 0;
-    const x = idx % width;
-    const y = (idx / width) | 0;
-    tryPush(x - 1, y);
-    tryPush(x + 1, y);
-    tryPush(x, y - 1);
-    tryPush(x, y + 1);
+    // Require high R and B so red paint wells (low B) are not keyed out.
+    if (r >= 140 && b >= 140 && g <= 90 && Math.min(r, b) - g >= 40) {
+      bitmap[i] = 0;
+      bitmap[i + 1] = 0;
+      bitmap[i + 2] = 0;
+      bitmap[i + 3] = 0;
+    }
   }
-
   return nativeImage.createFromBitmap(bitmap, { width, height });
 }
 
@@ -65,15 +39,15 @@ app.whenReady().then(async () => {
     show: false,
     webPreferences: { offscreen: true, backgroundThrottling: false }
   });
-  win.setBackgroundColor('#00000000');
+  win.setBackgroundColor(CHROMA);
 
   const svgPath = path.resolve(__dirname, '../assets/icon.svg');
   const svgData = fs.readFileSync(svgPath, 'utf8');
-  const html = \`<!DOCTYPE html><html><body style="margin:0;padding:0;overflow:hidden;background:transparent;"><img src="data:image/svg+xml;utf8,\${encodeURIComponent(svgData)}" width="512" height="512"/></body></html>\`;
+  const html = \`<!DOCTYPE html><html><body style="margin:0;padding:0;overflow:hidden;background:\${CHROMA};"><img src="data:image/svg+xml;utf8,\${encodeURIComponent(svgData)}" width="512" height="512"/></body></html>\`;
 
   await win.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(html));
   await new Promise(r => setTimeout(r, 600));
-  const image = punchWhiteBackground((await win.webContents.capturePage()).resize({
+  const image = punchChromaBackground((await win.webContents.capturePage()).resize({
     width: 512,
     height: 512,
     quality: 'best'
