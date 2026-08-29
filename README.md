@@ -122,13 +122,16 @@ Quit every Paint window and click the dock icon again after pulling new source. 
 
 ---
 
-## 📦 Packaged builds (AppImage & .deb)
+## 📦 Packaged builds (AppImage, .deb, and Snap)
 
-Build standalone installers. Output goes to `release/` and is **gitignored** (do not commit AppImages, `.deb` files, or `release/linux-unpacked/`).
+Build standalone installers. Output goes to `release/` and is **gitignored** (do not commit AppImages, `.deb` files, `.snap` files, or `release/linux-unpacked/`).
 
 ```bash
 # Linux (.AppImage + .deb)
 npm run dist:linux
+
+# Linux Snap (.snap)
+npm run dist:snap
 
 # Windows (.exe installer + portable .exe)
 npm run dist:win
@@ -138,6 +141,23 @@ Typical Linux artifacts:
 
 - `release/Paint-1.0.0.AppImage`
 - `release/paint-electron_1.0.0_amd64.deb`
+- `paint-electron_1.0.0_amd64.snap` (written to the repo root)
+
+The Snap Store name is **`paint-electron`** because `paint` is already taken. The app still appears as **Paint** in the dock and application menu.
+
+### Install from the Snap Store
+
+```bash
+sudo snap install paint-electron
+```
+
+Listing: [snapcraft.io/paint-electron](https://snapcraft.io/paint-electron). Ubuntu App Center can also install it if you search for **Paint** or **paint-electron**.
+
+After install, press **Super**, search **Paint**, and pin it if you want. Later updates:
+
+```bash
+sudo snap refresh paint-electron
+```
 
 ### Install the .deb and pin it (Ubuntu 26.04)
 
@@ -153,6 +173,52 @@ Then unpin any old Paint icon, press **Super**, search **Paint**, and **Pin to D
 chmod +x release/Paint-1.0.0.AppImage
 ./release/Paint-1.0.0.AppImage
 ```
+
+### Publish to the Snap Store
+
+One-time setup (already done for this project): [Ubuntu One](https://snapcraft.io) account, `snapcraft` + LXD installed, then:
+
+```bash
+snapcraft login
+snapcraft register paint-electron
+```
+
+Build the snap on the host, then pack it. Use `snapcraft pack`, not bare `snapcraft` (bare `snapcraft` is deprecated and can fail inside LXD).
+
+```bash
+npm run dist:snap
+```
+
+That runs `electron-builder --linux dir` (writes `release/linux-unpacked`) and then `snapcraft pack`. The store icon must be a **40–512px** square PNG under 256KB. This repo keeps that file at `snap/gui/paint-electron.png`. If you change `assets/icon.svg`, regenerate both icons first:
+
+```bash
+npm run generate-icon
+npm run dist:snap
+```
+
+Upload the package, then push listing metadata (summary, description, and the store webpage icon). `snapcraft upload` alone does not refresh the store page icon after the first release.
+
+```bash
+snapcraft upload paint-electron_1.0.0_amd64.snap --release=stable
+snapcraft upload-metadata paint-electron_1.0.0_amd64.snap --force
+```
+
+Same version string is fine; the store creates a new **revision**. Confirm the release:
+
+```bash
+snapcraft status paint-electron
+snapcraft revisions paint-electron
+```
+
+`latest/stable` should show the new revision. **No build information for this revision** is expected: this project uploads a pre-built `.snap` instead of building on Launchpad.
+
+Optional local test before publishing:
+
+```bash
+sudo snap install --dangerous paint-electron_1.0.0_amd64.snap
+```
+
+For a later version: bump `"version"` in `package.json`, rebuild, upload, and run `upload-metadata` again.
 
 ### Publish to GitHub Releases
 
